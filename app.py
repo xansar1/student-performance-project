@@ -121,7 +121,8 @@ if uploaded_file:
     # Save chart for PDF
     chart_path = os.path.join(os.getcwd(), "chart.png")
     #fig.write_image(chart_path)
-    st.plotly_chart(fig)
+   st.plotly_chart(fig, key="some_unique_key")
+
 
     # PDF Export
     st.subheader("📥 Download Report")
