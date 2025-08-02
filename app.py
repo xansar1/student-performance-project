@@ -3,11 +3,11 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 import tempfile
-import pdfkit
 import plotly.express as px
 from sklearn.preprocessing import StandardScaler
 from sklearn.cluster import KMeans
 import os
+from xhtml2pdf import pisa
 
 # Page setup
 st.set_page_config(page_title="Student Performance Analysis", layout="wide")
@@ -120,7 +120,7 @@ if uploaded_file:
                      hover_data=["STUDENT_NAME", "TOTAL_SCORE"])
     st.plotly_chart(fig, key="score_chart")
 
-    # Optional: Save chart image for PDF (only if you want to embed image)
+    # Optional: Save chart image
     chart_path = os.path.join(os.getcwd(), "chart.png")
     try:
         fig.write_image(chart_path)  # Requires kaleido
@@ -129,6 +129,12 @@ if uploaded_file:
 
     # PDF Export
     st.subheader("📥 Download Report")
+
+    def convert_html_to_pdf(source_html, output_path):
+        with open(output_path, "wb") as pdf_file:
+            pisa_status = pisa.CreatePDF(source_html, dest=pdf_file)
+        return not pisa_status.err
+
     if st.button("Generate & Download PDF"):
         html_content = f"""
         <html>
@@ -150,9 +156,11 @@ if uploaded_file:
         html_content += "</body></html>"
 
         with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp_pdf:
-            pdfkit.from_string(html_content, tmp_pdf.name)
-            with open(tmp_pdf.name, "rb") as f:
-                st.download_button("📄 Download PDF Report", f, file_name="student_report.pdf")
+            if convert_html_to_pdf(html_content, tmp_pdf.name):
+                with open(tmp_pdf.name, "rb") as f:
+                    st.download_button("📄 Download PDF Report", f, file_name="student_report.pdf")
+            else:
+                st.error("❌ Failed to generate PDF.")
 
 else:
     st.info("📁 Please upload a CSV file to begin.")
