@@ -120,7 +120,8 @@ if uploaded_file:
 
     # Save chart for PDF
     chart_path = os.path.join(os.getcwd(), "chart.png")
-    fig.write_image(chart_path)
+    #fig.write_image(chart_path)
+    st.plotly_chart(fig)
 
     # PDF Export
     st.subheader("📥 Download Report")
