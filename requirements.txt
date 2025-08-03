@@ -6,3 +6,4 @@ matplotlib
 seaborn
 pdfkit
 kaleido
+xhtml2pdf
