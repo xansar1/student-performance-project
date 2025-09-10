@@ -19,3 +19,7 @@ A Streamlit web app to analyze and visualize student academic performance using 
 - PDFKit & wkhtmltopdf
 
 ## 🗂️ Project Structure
+
+
+## 🔗 notion link
+👉 https://www.notion.so/Student-Performance-Analyzer-26ac6e7a75e880e4a570e0a214319ab4?source=copy_link
