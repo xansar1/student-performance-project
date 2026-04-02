@@ -1,166 +1,193 @@
 import streamlit as st
 import pandas as pd
-import matplotlib.pyplot as plt
-import seaborn as sns
-import tempfile
 import plotly.express as px
+import tempfile
+import os
 from sklearn.preprocessing import StandardScaler
 from sklearn.cluster import KMeans
-import os
 from xhtml2pdf import pisa
 
-# Page setup
-st.set_page_config(page_title="Student Performance Analysis", layout="wide")
-st.title("📊 Student Performance Analysis App")
+# ---------------- PAGE CONFIG ----------------
+st.set_page_config(
+    page_title="AI Academic Performance Analytics",
+    page_icon="🎓",
+    layout="wide"
+)
 
-# Upload CSV
-uploaded_file = st.file_uploader("Upload your CSV file", type=["csv"])
+# ---------------- CUSTOM CSS ----------------
+st.markdown("""
+<style>
+.main {
+    background-color: #0e1117;
+}
+.metric-card {
+    background: #1c1f26;
+    padding: 20px;
+    border-radius: 15px;
+    text-align: center;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+}
+</style>
+""", unsafe_allow_html=True)
+
+st.title("🎓 AI Academic Performance Analytics Dashboard")
+st.caption("Premium SaaS-style student performance intelligence system")
+
+# ---------------- FILE UPLOAD ----------------
+uploaded_file = st.file_uploader("📁 Upload CSV File", type=["csv"])
 
 if uploaded_file:
     df = pd.read_csv(uploaded_file)
 
-    # Clean column names
+    # ---------------- CLEANING ----------------
     df.columns = [col.strip().replace(" ", "_").upper() for col in df.columns]
-    df.rename(columns={
+
+    rename_map = {
         "NAME_OF_THE_STUDENT": "STUDENT_NAME",
         "PROGRAM_NAME": "PROGRAM",
         "GENERAL_MANAGEMENT_SCORE_(OUT_OF_50)": "GENERAL_SCORE",
         "DOMAIN_SPECIFIC_SCORE_(OUT_50)": "DOMAIN_SCORE",
         "TOTAL_SCORE_(OUT_OF_100)": "TOTAL_SCORE"
-    }, inplace=True)
+    }
 
-    for col in ["EMAIL", "GENDER"]:
+    df.rename(columns=rename_map, inplace=True)
+
+    # fallback optional columns
+    for col in ["EMAIL", "GENDER", "UNIVERSITY", "SPECIALISATION"]:
         if col not in df.columns:
-            df[col] = ""
+            df[col] = "N/A"
 
-    # Sidebar – Add Student
-    st.sidebar.subheader("➕ Add New Student")
-    with st.sidebar.form("add_form"):
-        add_name = st.text_input("Student Name")
-        add_university = st.text_input("University")
-        add_program = st.text_input("Program")
-        add_specialisation = st.text_input("Specialisation")
-        add_email = st.text_input("Email")
-        add_gender = st.selectbox("Gender", ["Male", "Female", "Other"])
-        add_general = st.number_input("General Score (0–50)", 0, 50)
-        add_domain = st.number_input("Domain Score (0–50)", 0, 50)
-        submitted = st.form_submit_button("✅ Add Student")
+    # ---------------- ADD GRADE ----------------
+    def get_grade(score):
+        if score >= 85:
+            return "A"
+        elif score >= 70:
+            return "B"
+        elif score >= 50:
+            return "C"
+        return "D"
 
-        if submitted:
-            new_total = add_general + add_domain
-            new_row = pd.DataFrame([{
-                "STUDENT_NAME": add_name,
-                "UNIVERSITY": add_university,
-                "PROGRAM": add_program,
-                "SPECIALISATION": add_specialisation,
-                "EMAIL": add_email,
-                "GENDER": add_gender,
-                "GENERAL_SCORE": add_general,
-                "DOMAIN_SCORE": add_domain,
-                "TOTAL_SCORE": new_total
-            }])
-            df = pd.concat([df, new_row], ignore_index=True)
-            st.success(f"Student '{add_name}' added.")
+    df["GRADE"] = df["TOTAL_SCORE"].apply(get_grade)
 
-    # Sidebar – Edit/Delete
-    st.sidebar.subheader("✏️ Edit / Delete Student")
-    selected_student = st.sidebar.selectbox("Select student to edit/delete", df["STUDENT_NAME"].unique())
+    # ---------------- KPI SECTION ----------------
+    total_students = len(df)
+    avg_score = round(df["TOTAL_SCORE"].mean(), 2)
+    top_score = int(df["TOTAL_SCORE"].max())
+    at_risk = len(df[df["TOTAL_SCORE"] < 50])
 
-    if selected_student:
-        selected_row = df[df["STUDENT_NAME"] == selected_student].iloc[0]
-        with st.sidebar.form("edit_form"):
-            edit_index = int(selected_row.name)
-            edit_name = st.text_input("Student Name", value=selected_row["STUDENT_NAME"])
-            edit_university = st.text_input("University", value=selected_row["UNIVERSITY"])
-            edit_program = st.text_input("Program", value=selected_row["PROGRAM"])
-            edit_specialisation = st.text_input("Specialisation", value=selected_row["SPECIALISATION"])
-            edit_email = st.text_input("Email", value=selected_row["EMAIL"])
-            gender_options = ["Male", "Female", "Other"]
-            default_gender_index = gender_options.index(selected_row.get("GENDER", "Male")) if selected_row.get("GENDER") in gender_options else 0
-            edit_gender = st.selectbox("Gender", gender_options, index=default_gender_index)
-            edit_general = st.number_input("General Score (0–50)", 0, 50, int(selected_row["GENERAL_SCORE"]))
-            edit_domain = st.number_input("Domain Score (0–50)", 0, 50, int(selected_row["DOMAIN_SCORE"]))
-            updated = st.form_submit_button("💾 Save Changes")
-            deleted = st.form_submit_button("🗑️ Delete Student")
+    c1, c2, c3, c4 = st.columns(4)
+    c1.metric("👨‍🎓 Total Students", total_students)
+    c2.metric("📈 Average Score", avg_score)
+    c3.metric("🏆 Top Score", top_score)
+    c4.metric("⚠️ At Risk", at_risk)
 
-            if updated:
-                df.loc[edit_index] = [
-                    edit_name,
-                    edit_university,
-                    edit_program,
-                    edit_specialisation,
-                    edit_email,
-                    edit_gender,
-                    edit_general,
-                    edit_domain,
-                    edit_general + edit_domain
-                ]
-                st.success(f"Updated student: {edit_name}")
+    st.divider()
 
-            if deleted:
-                df = df[df["STUDENT_NAME"] != selected_student]
-                st.warning(f"Deleted student: {selected_student}")
+    # ---------------- DATA PREVIEW ----------------
+    st.subheader("📄 Student Dataset")
+    st.dataframe(
+        df.style.highlight_max(subset=["TOTAL_SCORE"], color="lightgreen")
+                .highlight_min(subset=["TOTAL_SCORE"], color="salmon"),
+        use_container_width=True
+    )
 
-    # Preview Data
-    st.subheader("📄 Dataset Preview")
-    st.dataframe(df)
+    # ---------------- CLUSTERING ----------------
+    st.subheader("🎯 AI Performance Clustering")
 
-    # Clustering
-    st.subheader("🎯 Performance Clustering")
     features = df[["GENERAL_SCORE", "DOMAIN_SCORE", "TOTAL_SCORE"]]
-    scaler = StandardScaler()
-    scaled = scaler.fit_transform(features)
-    kmeans = KMeans(n_clusters=3, random_state=42)
-    df["CLUSTER"] = kmeans.fit_predict(scaled)
-    st.dataframe(df[["STUDENT_NAME", "PROGRAM", "TOTAL_SCORE", "CLUSTER"]])
+    scaled = StandardScaler().fit_transform(features)
+    model = KMeans(n_clusters=3, random_state=42, n_init=10)
+    df["CLUSTER"] = model.fit_predict(scaled)
 
-    # Chart
-    st.subheader("📊 Score Distribution")
-    fig = px.scatter(df, x="GENERAL_SCORE", y="DOMAIN_SCORE", color="CLUSTER",
-                     hover_data=["STUDENT_NAME", "TOTAL_SCORE"])
-    st.plotly_chart(fig, key="score_chart")
+    cluster_fig = px.scatter(
+        df,
+        x="GENERAL_SCORE",
+        y="DOMAIN_SCORE",
+        color="CLUSTER",
+        size="TOTAL_SCORE",
+        hover_data=["STUDENT_NAME", "GRADE"],
+        title="AI Cluster Segmentation"
+    )
+    st.plotly_chart(cluster_fig, use_container_width=True)
 
-    # Optional: Save chart image
-    chart_path = os.path.join(os.getcwd(), "chart.png")
-    try:
-        fig.write_image(chart_path)  # Requires kaleido
-    except:
-        chart_path = None
+    # ---------------- CHARTS ----------------
+    col1, col2 = st.columns(2)
 
-    # PDF Export
-    st.subheader("📥 Download Report")
+    with col1:
+        top10 = df.sort_values("TOTAL_SCORE", ascending=False).head(10)
+        fig_bar = px.bar(
+            top10,
+            x="STUDENT_NAME",
+            y="TOTAL_SCORE",
+            title="🏆 Top 10 Students"
+        )
+        st.plotly_chart(fig_bar, use_container_width=True)
+
+    with col2:
+        fig_pie = px.pie(
+            df,
+            names="GRADE",
+            title="📊 Grade Distribution"
+        )
+        st.plotly_chart(fig_pie, use_container_width=True)
+
+    # ---------------- UNIVERSITY INSIGHTS ----------------
+    st.subheader("🏫 University-wise Performance")
+    uni_avg = df.groupby("UNIVERSITY")["TOTAL_SCORE"].mean().reset_index()
+    fig_uni = px.bar(
+        uni_avg,
+        x="UNIVERSITY",
+        y="TOTAL_SCORE",
+        title="Average Score by University"
+    )
+    st.plotly_chart(fig_uni, use_container_width=True)
+
+    # ---------------- AI RECOMMENDATIONS ----------------
+    st.subheader("🤖 AI Recommendations")
+    weak_students = df[df["TOTAL_SCORE"] < 50]
+
+    if len(weak_students) > 0:
+        for _, row in weak_students.iterrows():
+            st.warning(
+                f"{row['STUDENT_NAME']} needs academic support in {row['PROGRAM']} "
+                f"(Score: {row['TOTAL_SCORE']})"
+            )
+    else:
+        st.success("🎉 No at-risk students detected.")
+
+    # ---------------- PDF EXPORT ----------------
+    st.subheader("📥 Executive PDF Report")
 
     def convert_html_to_pdf(source_html, output_path):
         with open(output_path, "wb") as pdf_file:
             pisa_status = pisa.CreatePDF(source_html, dest=pdf_file)
         return not pisa_status.err
 
-    if st.button("Generate & Download PDF"):
-        html_content = f"""
+    if st.button("Generate Executive PDF"):
+        html = f"""
         <html>
-        <head>
-        <style>
-        body {{ font-family: Arial; padding: 20px; }}
-        h1 {{ color: navy; }}
-        table, th, td {{ border: 1px solid black; border-collapse: collapse; padding: 6px; }}
-        </style>
-        </head>
-        <body>
-        <h1>Student Performance Report</h1>
-        <h3>Clustering Summary</h3>
-        {df.to_html(index=False)}
+        <body style="font-family: Arial;">
+            <h1 style="color:navy;">🎓 Student Performance Executive Report</h1>
+            <p>Total Students: {total_students}</p>
+            <p>Average Score: {avg_score}</p>
+            <p>Top Score: {top_score}</p>
+            <p>At Risk Students: {at_risk}</p>
+            <h3>Detailed Data</h3>
+            {df.to_html(index=False)}
+        </body>
+        </html>
         """
 
-        if chart_path:
-            html_content += f'<h3>Visualization</h3><img src="{chart_path}" width="600">'
-        html_content += "</body></html>"
-
         with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp_pdf:
-            if convert_html_to_pdf(html_content, tmp_pdf.name):
+            if convert_html_to_pdf(html, tmp_pdf.name):
                 with open(tmp_pdf.name, "rb") as f:
-                    st.download_button("📄 Download PDF Report", f, file_name="student_report.pdf")
+                    st.download_button(
+                        "📄 Download PDF",
+                        f,
+                        file_name="executive_student_report.pdf"
+                    )
             else:
-                st.error("❌ Failed to generate PDF.")
+                st.error("❌ PDF generation failed.")
 
 else:
-    st.info("📁 Please upload a CSV file to begin.")
+    st.info("📁 Upload a CSV file to start analytics.")
