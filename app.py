@@ -236,7 +236,7 @@ if uploaded_file:
             ["Average Score", str(avg_score)],
             ["Top Score", str(top_score)],
             ["At Risk Students", str(at_risk)],
-            ["Top Performer", topper_name)]
+            ["Top Performer", topper_name]
         ]
 
         summary_table = Table(summary_data, colWidths=[180, 120])
