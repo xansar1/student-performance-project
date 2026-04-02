@@ -157,10 +157,10 @@ if uploaded_file:
     else:
         st.success("🎉 No at-risk students detected.")
 
-    # ---------------- PDF EXPORT ----------------
-    st.subheader("📥 Executive PDF Report")
+   # ---------------- PDF EXPORT ----------------
+st.subheader("📥 Executive PDF Report")
 
-    def generate_pdf(df, total_students, avg_score, top_score, at_risk):
+def generate_pdf(df, total_students, avg_score, top_score, at_risk):
     buffer = BytesIO()
 
     doc = SimpleDocTemplate(
@@ -178,7 +178,9 @@ if uploaded_file:
     story = []
 
     # -------- Title --------
-    story.append(Paragraph("🎓 Student Performance Executive Report", title_style))
+    story.append(
+        Paragraph("🎓 Student Performance Executive Report", title_style)
+    )
     story.append(Spacer(1, 0.25 * inch))
 
     # -------- Summary Table --------
@@ -237,20 +239,21 @@ if uploaded_file:
     buffer.seek(0)
     return buffer
 
-    pdf_buffer = generate_pdf(
-        df,
-        total_students,
-        avg_score,
-        top_score,
-        at_risk
-    )
 
-    st.download_button(
-        label="📄 Download Executive PDF",
-        data=pdf_buffer,
-        file_name="executive_student_report.pdf",
-        mime="application/pdf"
-    )
+pdf_buffer = generate_pdf(
+    df,
+    total_students,
+    avg_score,
+    top_score,
+    at_risk
+)
+
+st.download_button(
+    label="📄 Download Executive PDF",
+    data=pdf_buffer,
+    file_name="executive_student_report.pdf",
+    mime="application/pdf"
+)
 
 else:
     st.info("📁 Upload a CSV file to start analytics.")
