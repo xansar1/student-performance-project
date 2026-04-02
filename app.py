@@ -1,11 +1,20 @@
 import streamlit as st
 import pandas as pd
 import plotly.express as px
-import tempfile
-import os
 from sklearn.preprocessing import StandardScaler
 from sklearn.cluster import KMeans
-from xhtml2pdf import pisa
+from io import BytesIO
+
+# PDF
+from reportlab.platypus import (
+    SimpleDocTemplate,
+    Paragraph,
+    Spacer,
+    Table,
+    TableStyle
+)
+from reportlab.lib.styles import getSampleStyleSheet
+from reportlab.lib.units import inch
 
 # ---------------- PAGE CONFIG ----------------
 st.set_page_config(
@@ -19,13 +28,6 @@ st.markdown("""
 <style>
 .main {
     background-color: #0e1117;
-}
-.metric-card {
-    background: #1c1f26;
-    padding: 20px;
-    border-radius: 15px;
-    text-align: center;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
 }
 </style>
 """, unsafe_allow_html=True)
@@ -49,15 +51,13 @@ if uploaded_file:
         "DOMAIN_SPECIFIC_SCORE_(OUT_50)": "DOMAIN_SCORE",
         "TOTAL_SCORE_(OUT_OF_100)": "TOTAL_SCORE"
     }
-
     df.rename(columns=rename_map, inplace=True)
 
-    # fallback optional columns
     for col in ["EMAIL", "GENDER", "UNIVERSITY", "SPECIALISATION"]:
         if col not in df.columns:
             df[col] = "N/A"
 
-    # ---------------- ADD GRADE ----------------
+    # ---------------- GRADE SYSTEM ----------------
     def get_grade(score):
         if score >= 85:
             return "A"
@@ -96,6 +96,7 @@ if uploaded_file:
 
     features = df[["GENERAL_SCORE", "DOMAIN_SCORE", "TOTAL_SCORE"]]
     scaled = StandardScaler().fit_transform(features)
+
     model = KMeans(n_clusters=3, random_state=42, n_init=10)
     df["CLUSTER"] = model.fit_predict(scaled)
 
@@ -134,6 +135,7 @@ if uploaded_file:
     # ---------------- UNIVERSITY INSIGHTS ----------------
     st.subheader("🏫 University-wise Performance")
     uni_avg = df.groupby("UNIVERSITY")["TOTAL_SCORE"].mean().reset_index()
+
     fig_uni = px.bar(
         uni_avg,
         x="UNIVERSITY",
@@ -149,8 +151,8 @@ if uploaded_file:
     if len(weak_students) > 0:
         for _, row in weak_students.iterrows():
             st.warning(
-                f"{row['STUDENT_NAME']} needs academic support in {row['PROGRAM']} "
-                f"(Score: {row['TOTAL_SCORE']})"
+                f"{row['STUDENT_NAME']} needs academic support in "
+                f"{row['PROGRAM']} (Score: {row['TOTAL_SCORE']})"
             )
     else:
         st.success("🎉 No at-risk students detected.")
@@ -158,36 +160,57 @@ if uploaded_file:
     # ---------------- PDF EXPORT ----------------
     st.subheader("📥 Executive PDF Report")
 
-    def convert_html_to_pdf(source_html, output_path):
-        with open(output_path, "wb") as pdf_file:
-            pisa_status = pisa.CreatePDF(source_html, dest=pdf_file)
-        return not pisa_status.err
+    def generate_pdf(df, total_students, avg_score, top_score, at_risk):
+        buffer = BytesIO()
+        doc = SimpleDocTemplate(buffer)
+        styles = getSampleStyleSheet()
+        story = []
 
-    if st.button("Generate Executive PDF"):
-        html = f"""
-        <html>
-        <body style="font-family: Arial;">
-            <h1 style="color:navy;">🎓 Student Performance Executive Report</h1>
-            <p>Total Students: {total_students}</p>
-            <p>Average Score: {avg_score}</p>
-            <p>Top Score: {top_score}</p>
-            <p>At Risk Students: {at_risk}</p>
-            <h3>Detailed Data</h3>
-            {df.to_html(index=False)}
-        </body>
-        </html>
-        """
+        story.append(
+            Paragraph(
+                "Student Performance Executive Report",
+                styles["Title"]
+            )
+        )
+        story.append(Spacer(1, 0.2 * inch))
 
-        with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp_pdf:
-            if convert_html_to_pdf(html, tmp_pdf.name):
-                with open(tmp_pdf.name, "rb") as f:
-                    st.download_button(
-                        "📄 Download PDF",
-                        f,
-                        file_name="executive_student_report.pdf"
-                    )
-            else:
-                st.error("❌ PDF generation failed.")
+        summary_data = [
+            ["Total Students", total_students],
+            ["Average Score", avg_score],
+            ["Top Score", top_score],
+            ["At Risk Students", at_risk]
+        ]
+
+        summary_table = Table(summary_data)
+        story.append(summary_table)
+        story.append(Spacer(1, 0.3 * inch))
+
+        story.append(
+            Paragraph("Detailed Student Data", styles["Heading2"])
+        )
+
+        table_data = [df.columns.tolist()] + df.astype(str).values.tolist()
+        report_table = Table(table_data[:20])  # limit rows
+        story.append(report_table)
+
+        doc.build(story)
+        buffer.seek(0)
+        return buffer
+
+    pdf_buffer = generate_pdf(
+        df,
+        total_students,
+        avg_score,
+        top_score,
+        at_risk
+    )
+
+    st.download_button(
+        label="📄 Download Executive PDF",
+        data=pdf_buffer,
+        file_name="executive_student_report.pdf",
+        mime="application/pdf"
+    )
 
 else:
     st.info("📁 Upload a CSV file to start analytics.")
