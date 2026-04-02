@@ -110,6 +110,30 @@ if uploaded_file:
         f"{topper['UNIVERSITY']} | Score: {topper['TOTAL_SCORE']}"
    )
 
+    # ---------------- STUDENT SEARCH ----------------
+    st.subheader("🔍 Search Student")
+
+    student_name = st.selectbox(
+        "Select Student",
+        df["STUDENT_NAME"].sort_values().unique()
+    )
+
+    student_row = df[df["STUDENT_NAME"] == student_name].iloc[0]
+
+    university_avg = round(
+        df[df["UNIVERSITY"] == student_row["UNIVERSITY"]]["TOTAL_SCORE"].mean(),
+        2
+    )
+
+    st.info(
+        f"🎓 {student_row['STUDENT_NAME']} | "
+        f"{student_row['PROGRAM']} | "
+        f"University: {student_row['UNIVERSITY']} | "
+        f"Grade: {student_row['GRADE']} | "
+        f"Score: {student_row['TOTAL_SCORE']} | "
+        f"University Avg: {university_avg}"
+    )
+
     # ---------------- DATA PREVIEW ----------------
     st.subheader("📄 Student Dataset")
     st.dataframe(
