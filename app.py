@@ -232,6 +232,25 @@ if uploaded_file:
     )
     st.plotly_chart(fig_uni, use_container_width=True)
 
+    # ---------------- PROGRAM-WISE PERFORMANCE ----------------
+    st.subheader("📘 Program-wise Performance")
+
+    program_avg = (
+        df.groupby("PROGRAM")["TOTAL_SCORE"]
+        .mean()
+        .reset_index()
+        .sort_values("TOTAL_SCORE", ascending=False)
+    )
+
+    fig_program = px.bar(
+        program_avg,
+        x="PROGRAM",
+        y="TOTAL_SCORE",
+        title="Average Score by Program"
+    )
+
+    st.plotly_chart(fig_program, use_container_width=True)
+
     # ---------------- AI RECOMMENDATIONS ----------------
     st.subheader("🤖 AI Recommendations")
     weak_students = df[df["TOTAL_SCORE"] < 50]
