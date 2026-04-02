@@ -103,12 +103,12 @@ if uploaded_file:
 
     st.divider()
 
-  topper = df.loc[df["TOTAL_SCORE"].idxmax()]
+    topper = df.loc[df["TOTAL_SCORE"].idxmax()]
 
     st.success(
-    f"🏆 Top Performer: {topper['STUDENT_NAME']} | "
-    f"{topper['UNIVERSITY']} | Score: {topper['TOTAL_SCORE']}"
- )
+        f"🏆 Top Performer: {topper['STUDENT_NAME']} | "
+        f"{topper['UNIVERSITY']} | Score: {topper['TOTAL_SCORE']}"
+   )
 
     # ---------------- DATA PREVIEW ----------------
     st.subheader("📄 Student Dataset")
@@ -138,7 +138,7 @@ if uploaded_file:
     )
     st.plotly_chart(cluster_fig, use_container_width=True)
 
-  # ---------------- GRADE TREND BY UNIVERSITY ----------------
+    # ---------------- GRADE TREND BY UNIVERSITY ----------------
     st.subheader("📊 Grade Trend by University")
 
     grade_uni = (
@@ -235,7 +235,8 @@ if uploaded_file:
             ["Total Students", str(total_students)],
             ["Average Score", str(avg_score)],
             ["Top Score", str(top_score)],
-            ["At Risk Students", str(at_risk)]
+            ["At Risk Students", str(at_risk)],
+            ["Top Performer", topper_name)]
         ]
 
         summary_table = Table(summary_data, colWidths=[180, 120])
