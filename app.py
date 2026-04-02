@@ -161,41 +161,81 @@ if uploaded_file:
     st.subheader("📥 Executive PDF Report")
 
     def generate_pdf(df, total_students, avg_score, top_score, at_risk):
-        buffer = BytesIO()
-        doc = SimpleDocTemplate(buffer)
-        styles = getSampleStyleSheet()
-        story = []
+    buffer = BytesIO()
 
-        story.append(
-            Paragraph(
-                "Student Performance Executive Report",
-                styles["Title"]
-            )
-        )
-        story.append(Spacer(1, 0.2 * inch))
+    doc = SimpleDocTemplate(
+        buffer,
+        rightMargin=40,
+        leftMargin=40,
+        topMargin=40,
+        bottomMargin=40
+    )
 
-        summary_data = [
-            ["Total Students", total_students],
-            ["Average Score", avg_score],
-            ["Top Score", top_score],
-            ["At Risk Students", at_risk]
-        ]
+    styles = getSampleStyleSheet()
+    title_style = styles["Title"]
+    heading_style = styles["Heading2"]
 
-        summary_table = Table(summary_data)
-        story.append(summary_table)
-        story.append(Spacer(1, 0.3 * inch))
+    story = []
 
-        story.append(
-            Paragraph("Detailed Student Data", styles["Heading2"])
-        )
+    # -------- Title --------
+    story.append(Paragraph("🎓 Student Performance Executive Report", title_style))
+    story.append(Spacer(1, 0.25 * inch))
 
-        table_data = [df.columns.tolist()] + df.astype(str).values.tolist()
-        report_table = Table(table_data[:20])  # limit rows
-        story.append(report_table)
+    # -------- Summary Table --------
+    summary_data = [
+        ["Total Students", str(total_students)],
+        ["Average Score", str(avg_score)],
+        ["Top Score", str(top_score)],
+        ["At Risk Students", str(at_risk)]
+    ]
 
-        doc.build(story)
-        buffer.seek(0)
-        return buffer
+    summary_table = Table(summary_data, colWidths=[180, 120])
+    summary_table.setStyle(TableStyle([
+        ("GRID", (0, 0), (-1, -1), 0.5, "black"),
+        ("FONTNAME", (0, 0), (-1, -1), "Helvetica"),
+        ("FONTSIZE", (0, 0), (-1, -1), 11),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 8),
+    ]))
+
+    story.append(summary_table)
+    story.append(Spacer(1, 0.35 * inch))
+
+    # -------- Detailed Data --------
+    story.append(Paragraph("Detailed Student Data", heading_style))
+    story.append(Spacer(1, 0.15 * inch))
+
+    display_cols = [
+        "STUDENT_NAME",
+        "UNIVERSITY",
+        "PROGRAM",
+        "TOTAL_SCORE",
+        "GRADE"
+    ]
+
+    table_df = df[display_cols].copy()
+
+    table_data = [table_df.columns.tolist()] + table_df.astype(str).values.tolist()
+
+    report_table = Table(
+        table_data,
+        colWidths=[120, 120, 120, 80, 60],
+        repeatRows=1
+    )
+
+    report_table.setStyle(TableStyle([
+        ("BACKGROUND", (0, 0), (-1, 0), "#dbeafe"),
+        ("GRID", (0, 0), (-1, -1), 0.4, "grey"),
+        ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+        ("FONTSIZE", (0, 0), (-1, -1), 9),
+        ("ALIGN", (3, 1), (4, -1), "CENTER"),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 6),
+    ]))
+
+    story.append(report_table)
+
+    doc.build(story)
+    buffer.seek(0)
+    return buffer
 
     pdf_buffer = generate_pdf(
         df,
