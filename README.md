@@ -1,25 +1,88 @@
-# 🎓 Student Performance App
+# 🎓 AI Academic Performance Analytics Dashboard
 
-A Streamlit web app to analyze and visualize student academic performance using clustering and interactive charts.
+A premium **Streamlit SaaS-style analytics dashboard** for schools, colleges, coaching centers, and EdTech startups to monitor student performance using **AI clustering, grade insights, and executive PDF reports**.
 
-## Features
-- Upload CSV of student data
-- View charts (bar, pie, scatter)
-- Cluster students using K-Means
-- Download styled PDF report
+---
 
-## 🔗 Live Demo
-👉 [Launch App](https://your-link.streamlit.app)
+## 🚀 Live Demo
+👉 [Launch App](YOUR_STREAMLIT_LINK)
 
-## 📦 Tech Stack
+---
+
+## ✨ Key Features
+- 📁 CSV Upload Support
+- 📊 Interactive KPI Dashboard
+- 🎯 AI Performance Clustering (KMeans)
+- 🏆 Top 10 Student Leaderboard
+- 📈 University-wise Insights
+- 📚 Grade Distribution Analytics
+- 🤖 At-Risk Student Detection
+- 📄 Executive PDF Report Download
+- 🌐 Premium SaaS-style UI
+
+---
+
+## 📸 Dashboard Screenshots
+Add 3 images:
+- KPI Dashboard
+- Grade Pie + Leaderboard
+- PDF Report Preview
+
+---
+
+## 🛠️ Tech Stack
 - Python
 - Streamlit
-- scikit-learn
-- Pandas, Matplotlib, Plotly
-- PDFKit & wkhtmltopdf
+- Pandas
+- Plotly
+- Scikit-learn
+- xhtml2pdf
+- Kaleido
 
-## 🗂️ Project Structure
+---
 
+## 📂 Project Structure
+```bash
+student-performance-project/
+│── app.py
+│── requirements.txt
+│── README.md
+│── data/
+│   └── students.csv
+│── reports/
+│── assets/
+```
 
-## 🔗 notion link
-👉 https://www.notion.so/Student-Performance-Analyzer-26ac6e7a75e880e4a570e0a214319ab4?source=copy_link
+---
+
+## 💼 Business Use Cases
+- Schools performance monitoring
+- College analytics dashboards
+- Tuition center reporting
+- EdTech performance intelligence
+- Student risk prediction systems
+
+---
+
+## ⚡ Installation
+```bash
+git clone https://github.com/yourusername/student-performance-project.git
+cd student-performance-project
+pip install -r requirements.txt
+streamlit run app.py
+```
+
+---
+
+## 📄 Sample Output
+Executive PDF reports with:
+- KPI summary
+- Top students
+- grade insights
+- cluster segmentation
+- risk alerts
+
+---
+
+## 👨‍💻 Developer
+Built by **Ansar**
