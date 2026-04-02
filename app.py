@@ -57,6 +57,26 @@ if uploaded_file:
         if col not in df.columns:
             df[col] = "N/A"
 
+    # ---------------- SIDEBAR FILTERS ----------------
+st.sidebar.header("🎛 Filters")
+
+selected_university = st.sidebar.multiselect(
+    "Select University",
+    options=df["UNIVERSITY"].unique(),
+    default=df["UNIVERSITY"].unique()
+)
+
+selected_program = st.sidebar.multiselect(
+    "Select Program",
+    options=df["PROGRAM"].unique(),
+    default=df["PROGRAM"].unique()
+)
+
+df = df[
+    (df["UNIVERSITY"].isin(selected_university)) &
+    (df["PROGRAM"].isin(selected_program))
+]
+
     # ---------------- GRADE SYSTEM ----------------
     def get_grade(score):
         if score >= 85:
@@ -82,6 +102,13 @@ if uploaded_file:
     c4.metric("⚠️ At Risk", at_risk)
 
     st.divider()
+
+topper = df.loc[df["TOTAL_SCORE"].idxmax()]
+
+st.success(
+    f"🏆 Top Performer: {topper['STUDENT_NAME']} | "
+    f"{topper['UNIVERSITY']} | Score: {topper['TOTAL_SCORE']}"
+)
 
     # ---------------- DATA PREVIEW ----------------
     st.subheader("📄 Student Dataset")
