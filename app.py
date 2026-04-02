@@ -228,6 +228,19 @@ if uploaded_file:
     else:
         st.success("🎉 No at-risk students detected.")
 
+    # ---------------- RISK SEGMENTATION ----------------
+    st.subheader("🚨 Student Risk Segmentation")
+
+    high_risk = df[df["TOTAL_SCORE"] < 40]
+    medium_risk = df[(df["TOTAL_SCORE"] >= 40) & (df["TOTAL_SCORE"] < 60)]
+    safe_students = df[df["TOTAL_SCORE"] >= 60]
+
+    r1, r2, r3 = st.columns(3)
+
+    r1.metric("🔴 High Risk", len(high_risk))
+    r2.metric("🟠 Medium Risk", len(medium_risk))
+    r3.metric("🟢 Safe Students", len(safe_students))
+
    # ---------------- PDF EXPORT ----------------
     st.subheader("📥 Executive PDF Report")
 
