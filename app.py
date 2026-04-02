@@ -57,25 +57,25 @@ if uploaded_file:
         if col not in df.columns:
             df[col] = "N/A"
 
-    # ---------------- SIDEBAR FILTERS ----------------
-st.sidebar.header("🎛 Filters")
+     # ---------------- SIDEBAR FILTERS ----------------
+    st.sidebar.header("🎛 Filters")
 
-selected_university = st.sidebar.multiselect(
-    "Select University",
-    options=df["UNIVERSITY"].unique(),
-    default=df["UNIVERSITY"].unique()
-)
+    selected_university = st.sidebar.multiselect(
+        "Select University",
+        options=df["UNIVERSITY"].unique(),
+        default=df["UNIVERSITY"].unique()
+    )
 
-selected_program = st.sidebar.multiselect(
-    "Select Program",
-    options=df["PROGRAM"].unique(),
-    default=df["PROGRAM"].unique()
-)
+    selected_program = st.sidebar.multiselect(
+        "Select Program",
+        options=df["PROGRAM"].unique(),
+        default=df["PROGRAM"].unique()
+    )
 
-df = df[
-    (df["UNIVERSITY"].isin(selected_university)) &
-    (df["PROGRAM"].isin(selected_program))
-]
+    df = df[
+       (df["UNIVERSITY"].isin(selected_university)) &
+       (df["PROGRAM"].isin(selected_program))
+    ]
 
     # ---------------- GRADE SYSTEM ----------------
     def get_grade(score):
@@ -103,12 +103,12 @@ df = df[
 
     st.divider()
 
-topper = df.loc[df["TOTAL_SCORE"].idxmax()]
+  topper = df.loc[df["TOTAL_SCORE"].idxmax()]
 
-st.success(
+    st.success(
     f"🏆 Top Performer: {topper['STUDENT_NAME']} | "
     f"{topper['UNIVERSITY']} | Score: {topper['TOTAL_SCORE']}"
-)
+ )
 
     # ---------------- DATA PREVIEW ----------------
     st.subheader("📄 Student Dataset")
@@ -137,6 +137,26 @@ st.success(
         title="AI Cluster Segmentation"
     )
     st.plotly_chart(cluster_fig, use_container_width=True)
+
+  # ---------------- GRADE TREND BY UNIVERSITY ----------------
+    st.subheader("📊 Grade Trend by University")
+
+    grade_uni = (
+        df.groupby(["UNIVERSITY", "GRADE"])
+        .size()
+        .reset_index(name="COUNT")
+    )
+
+    fig_grade_uni = px.bar(
+        grade_uni,
+        x="UNIVERSITY",
+        y="COUNT",
+        color="GRADE",
+        barmode="group",
+        title="Grade Distribution by University"
+    )
+
+    st.plotly_chart(fig_grade_uni, use_container_width=True)
 
     # ---------------- CHARTS ----------------
     col1, col2 = st.columns(2)
@@ -209,6 +229,8 @@ st.success(
         )
         story.append(Spacer(1, 0.25 * inch))
 
+        topper_name = df.loc[df["TOTAL_SCORE"].idxmax(), "STUDENT_NAME"]
+        
         summary_data = [
             ["Total Students", str(total_students)],
             ["Average Score", str(avg_score)],
