@@ -134,6 +134,23 @@ if uploaded_file:
         f"University Avg: {university_avg}"
     )
 
+    # ---------------- STUDENT VS UNIVERSITY ----------------
+    st.subheader("📈 Student vs University Benchmark")
+
+    compare_df = pd.DataFrame({
+        "Category": ["Student Score", "University Avg"],
+        "Score": [student_row["TOTAL_SCORE"], university_avg]
+    })
+
+    fig_compare = px.bar(
+        compare_df,
+        x="Category",
+        y="Score",
+        title=f"{student_row['STUDENT_NAME']} Benchmark Comparison"
+    )
+
+    st.plotly_chart(fig_compare, use_container_width=True)
+
     # ---------------- DATA PREVIEW ----------------
     st.subheader("📄 Student Dataset")
     st.dataframe(
