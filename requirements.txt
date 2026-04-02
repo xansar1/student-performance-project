@@ -1,9 +1,7 @@
-streamlit
-pandas
-scikit-learn
-plotly
-matplotlib
-seaborn
-pdfkit
-kaleido
-xhtml2pdf
+streamlit>=1.35.0
+pandas>=2.2.0
+plotly>=5.22.0
+scikit-learn>=1.5.0
+xhtml2pdf>=0.2.15
+kaleido>=0.2.1
+numpy>=1.26.0
