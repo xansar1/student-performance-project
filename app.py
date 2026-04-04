@@ -69,6 +69,8 @@ sample_df = pd.DataFrame({
 
 csv_sample = sample_df.to_csv(index=False).encode("utf-8")
 
+st.info("📥 Download sample CSV below and use the same format for best results.")
+
 st.download_button(
     "📥 Download Sample CSV Format",
     data=csv_sample,
@@ -433,8 +435,6 @@ if uploaded_file:
         top_score,
         at_risk
     )
-
-    st.info("📥 Download sample CSV below and use the same format for best results.")
     
     st.download_button(
         label="📄 Download Executive PDF",
