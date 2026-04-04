@@ -1,32 +1,48 @@
 # 🎓 AI Academic Performance Analytics Dashboard
 
-A premium **Streamlit SaaS-style analytics dashboard** for schools, colleges, coaching centers, and EdTech startups to monitor student performance using **AI clustering, grade insights, and executive PDF reports**.
+A premium **AI-powered academic intelligence dashboard** built with **Streamlit**, designed for **schools, colleges, coaching centers, training institutes, and EdTech startups** to monitor, benchmark, and improve student outcomes.
+
+This platform transforms raw student score data into **actionable academic intelligence** using **KMeans clustering, risk segmentation, semester trend analysis, benchmarking, and executive PDF reporting**.
 
 ---
 
 ## 🚀 Live Demo
-👉 [Launch App](YOUR_STREAMLIT_LINK)
+👉 [Launch App](https://ai-academic-analytics-dashboard-5ujujechqk42wgnsfukjsn.streamlit.app/)
 
 ---
 
 ## ✨ Key Features
-- 📁 CSV Upload Support
+- 📁 CSV Upload & Large Dataset Support (500+ students)
+- 🎛️ Sidebar Filters (University + Program)
 - 📊 Interactive KPI Dashboard
+- 🏆 Top Performer Spotlight
+- 🔍 Student Search & Drilldown
+- 📈 Student vs University Benchmark
 - 🎯 AI Performance Clustering (KMeans)
-- 🏆 Top 10 Student Leaderboard
-- 📈 University-wise Insights
 - 📚 Grade Distribution Analytics
+- 🏫 University-wise Performance
+- 📘 Program-wise Performance
+- 📈 Semester Trend Analysis
 - 🤖 At-Risk Student Detection
-- 📄 Executive PDF Report Download
+- 🚨 Student Risk Segmentation
+- 📄 Executive PDF Report Export
 - 🌐 Premium SaaS-style UI
 
 ---
 
-## 📸 Dashboard Screenshots
-Add 3 images:
-- KPI Dashboard
-- Grade Pie + Leaderboard
-- PDF Report Preview
+## 📸 Dashboard Preview
+Add screenshots inside the `assets/` folder:
+
+```markdown
+![KPI Dashboard](assets/dashboard_kpi.png)
+![Benchmark + Charts](assets/benchmark_charts.png)
+![PDF Report](assets/pdf_preview.png)
+```
+
+Recommended screenshots:
+- KPI + topper + search
+- university + program + semester trend
+- executive PDF preview
 
 ---
 
@@ -35,39 +51,53 @@ Add 3 images:
 - Streamlit
 - Pandas
 - Plotly
+- NumPy
 - Scikit-learn
-- xhtml2pdf
-- Kaleido
+- ReportLab
 
 ---
 
 ## 📂 Project Structure
 ```bash
-student-performance-project/
+ai-academic-analytics-dashboard/
 │── app.py
 │── requirements.txt
 │── README.md
 │── data/
-│   └── students.csv
-│── reports/
+│   └── sample_students_500.csv
 │── assets/
+│   ├── dashboard_kpi.png
+│   ├── benchmark_charts.png
+│   └── pdf_preview.png
 ```
 
 ---
 
 ## 💼 Business Use Cases
-- Schools performance monitoring
-- College analytics dashboards
-- Tuition center reporting
-- EdTech performance intelligence
-- Student risk prediction systems
+This dashboard can be used by:
+
+- 🎓 Colleges & Universities
+- 📚 Coaching Centers
+- 🏫 Schools
+- 🚀 EdTech Startups
+- 💼 Placement & Training Institutes
+- 📊 Academic Coordinators / HODs
+
+### Practical Use Cases
+- student performance monitoring
+- topper & weak student analysis
+- semester performance tracking
+- batch/program benchmarking
+- risk segmentation
+- executive academic reporting
+- intervention planning dashboards
 
 ---
 
 ## ⚡ Installation
 ```bash
-git clone https://github.com/yourusername/student-performance-project.git
-cd student-performance-project
+git clone https://github.com/yourusername/ai-academic-analytics-dashboard.git
+cd ai-academic-analytics-dashboard
 pip install -r requirements.txt
 streamlit run app.py
 ```
@@ -75,14 +105,25 @@ streamlit run app.py
 ---
 
 ## 📄 Sample Output
-Executive PDF reports with:
+The executive PDF includes:
 - KPI summary
-- Top students
+- top performer
+- risk overview
+- student dataset preview
 - grade insights
-- cluster segmentation
-- risk alerts
+- institutional benchmarking
+
+---
+
+## 🚀 Future Scope
+- 🔐 Admin login & multi-college access
+- 📈 Next semester score forecasting
+- 🎯 Placement readiness prediction
+- 🧠 AI intervention recommendations
+- ☁️ cloud database integration
+- 👨‍🏫 faculty-level analytics
 
 ---
 
 ## 👨‍💻 Developer
-Built by **Ansar**
+Built with ❤️ by **Ansar**
