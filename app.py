@@ -57,6 +57,14 @@ if uploaded_file:
         if col not in df.columns:
             df[col] = "N/A"
 
+        import numpy as np
+
+        if "SEMESTER" not in df.columns:
+        df["SEMESTER"] = np.random.choice(
+            ["Sem 1", "Sem 2", "Sem 3", "Sem 4"],
+            size=len(df)
+        )
+
      # ---------------- SIDEBAR FILTERS ----------------
     st.sidebar.header("🎛 Filters")
 
@@ -250,6 +258,25 @@ if uploaded_file:
     )
 
     st.plotly_chart(fig_program, use_container_width=True)
+
+    # ---------------- SEMESTER TREND ANALYSIS ----------------
+    st.subheader("📈 Semester Performance Trend")
+
+    sem_avg = (
+        df.groupby("SEMESTER")["TOTAL_SCORE"]
+        .mean()
+        .reset_index()
+    )
+
+    fig_sem = px.line(
+        sem_avg,
+        x="SEMESTER",
+        y="TOTAL_SCORE",
+        markers=True,
+        title="Average Score Trend Across Semesters"
+    )
+
+    st.plotly_chart(fig_sem, use_container_width=True)
 
     # ---------------- AI RECOMMENDATIONS ----------------
     st.subheader("🤖 AI Recommendations")
