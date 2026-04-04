@@ -35,6 +35,47 @@ st.markdown("""
 st.title("🎓 AI Academic Performance Analytics Dashboard")
 st.caption("Premium SaaS-style student performance intelligence system")
 
+# ---------------- CSV FORMAT GUIDE ----------------
+st.subheader("📘 CSV Format Guide")
+
+st.markdown("""
+Upload CSV with these columns:
+
+- STUDENT_NAME
+- UNIVERSITY
+- PROGRAM
+- SPECIALISATION
+- EMAIL
+- GENDER
+- GENERAL_SCORE
+- DOMAIN_SCORE
+- TOTAL_SCORE
+
+Optional:
+- SEMESTER
+""")
+
+sample_df = pd.DataFrame({
+    "STUDENT_NAME": ["Aarav", "Meera"],
+    "UNIVERSITY": ["MG University", "KTU"],
+    "PROGRAM": ["BTech AI", "MBA"],
+    "SPECIALISATION": ["Machine Learning", "Finance"],
+    "EMAIL": ["aarav@example.com", "meera@example.com"],
+    "GENDER": ["Male", "Female"],
+    "GENERAL_SCORE": [45, 38],
+    "DOMAIN_SCORE": [42, 40],
+    "TOTAL_SCORE": [87, 78]
+})
+
+csv_sample = sample_df.to_csv(index=False).encode("utf-8")
+
+st.download_button(
+    "📥 Download Sample CSV Format",
+    data=csv_sample,
+    file_name="sample_format.csv",
+    mime="text/csv"
+)
+
 # ---------------- FILE UPLOAD ----------------
 uploaded_file = st.file_uploader("📁 Upload CSV File", type=["csv"])
 
@@ -393,6 +434,8 @@ if uploaded_file:
         at_risk
     )
 
+    st.info("📥 Download sample CSV below and use the same format for best results.")
+    
     st.download_button(
         label="📄 Download Executive PDF",
         data=pdf_buffer,
