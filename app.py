@@ -57,9 +57,9 @@ if uploaded_file:
         if col not in df.columns:
             df[col] = "N/A"
 
-        import numpy as np
+    import numpy as np
 
-        if "SEMESTER" not in df.columns:
+    if "SEMESTER" not in df.columns:
         df["SEMESTER"] = np.random.choice(
             ["Sem 1", "Sem 2", "Sem 3", "Sem 4"],
             size=len(df)
@@ -304,7 +304,7 @@ if uploaded_file:
     r2.metric("🟠 Medium Risk", len(medium_risk))
     r3.metric("🟢 Safe Students", len(safe_students))
 
-   # ---------------- PDF EXPORT ----------------
+    # ---------------- PDF EXPORT ----------------
     st.subheader("📥 Executive PDF Report")
 
     def generate_pdf(df, total_students, avg_score, top_score, at_risk):
