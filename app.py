@@ -96,6 +96,17 @@ if uploaded_file:
     }
     df.rename(columns=rename_map, inplace=True)
 
+    required_cols = [
+        "STUDENT_NAME", "UNIVERSITY", "PROGRAM",
+        "GENERAL_SCORE", "DOMAIN_SCORE", "TOTAL_SCORE"
+    ]
+
+    missing = [c for c in required_cols if c not in df.columns]
+
+    if missing:
+        st.error(f"Missing columns: {missing}")
+        st.stop()
+
     for col in ["EMAIL", "GENDER", "UNIVERSITY", "SPECIALISATION"]:
         if col not in df.columns:
             df[col] = "N/A"
