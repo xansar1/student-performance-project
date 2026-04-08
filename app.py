@@ -541,8 +541,11 @@ if st.sidebar.button("🚪 Logout"):
             to=receiver_email,
             subject="Student Performance Executive Report",
             contents="Attached is the executive performance report.",
-            attachments=pdf_buffer
+            attachments={
+                "executive_student_report.pdf": pdf_buffer.getvalue()
+            }
        )
+        
     
     st.download_button(
         label="📄 Download Executive PDF",
@@ -559,5 +562,5 @@ if st.sidebar.button("🚪 Logout"):
             send_email_report(email, pdf_buffer)
             st.success("PDF sent successfully")
         else:
-            st.info("📁 Upload a CSV file to start analytics.")
+            st.warning("Please enter recipient email")
  
