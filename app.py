@@ -4,6 +4,7 @@ import plotly.express as px
 from sklearn.preprocessing import StandardScaler
 from sklearn.cluster import KMeans
 from io import BytesIO
+import yagmail
 
 # PDF
 from reportlab.platypus import (
@@ -151,6 +152,17 @@ if uploaded_file:
 
     df["GRADE"] = df["TOTAL_SCORE"].apply(get_grade)
 
+    def placement_readiness(score):
+        if score >= 85:
+            return "Excellent"
+        elif score >= 70:
+            return "Placement Ready"
+        elif score >= 50:
+            return "Needs Upskilling"
+        return "High Risk"
+
+   df["PLACEMENT_STATUS"] = df["TOTAL_SCORE"].apply(placement_readiness)
+
     # ---------------- KPI SECTION ----------------
     total_students = len(df)
     avg_score = round(df["TOTAL_SCORE"].mean(), 2)
@@ -212,6 +224,16 @@ if uploaded_file:
     )
 
     st.plotly_chart(fig_compare, use_container_width=True)
+
+    st.subheader("🎯 Placement Readiness")
+
+    fig_place = px.histogram(
+        df,
+        x="PLACEMENT_STATUS",
+        title="Placement Readiness Distribution"
+    )
+
+    st.plotly_chart(fig_place, use_container_width=True)
 
     # ---------------- DATA PREVIEW ----------------
     st.subheader("📄 Student Dataset")
@@ -294,6 +316,19 @@ if uploaded_file:
     )
     st.plotly_chart(fig_uni, use_container_width=True)
 
+    st.subheader("🏆 University Ranking Leaderboard")
+
+    ranking = (
+        df.groupby("UNIVERSITY")["TOTAL_SCORE"]
+        .mean()
+        .reset_index()
+        .sort_values("TOTAL_SCORE", ascending=False)
+    )
+
+    ranking["RANK"] = range(1, len(ranking) + 1)
+
+    st.dataframe(ranking, use_container_width=True)
+
     # ---------------- PROGRAM-WISE PERFORMANCE ----------------
     st.subheader("📘 Program-wise Performance")
 
@@ -331,6 +366,15 @@ if uploaded_file:
     )
 
     st.plotly_chart(fig_sem, use_container_width=True)
+
+    def dropout_risk(score):
+        if score < 40:
+            return 90
+        elif score < 60:
+            return 60
+        return 10
+
+    df["DROPOUT_RISK"] = df["TOTAL_SCORE"].apply(dropout_risk)
 
     # ---------------- AI RECOMMENDATIONS ----------------
     st.subheader("🤖 AI Recommendations")
@@ -446,6 +490,16 @@ if uploaded_file:
         top_score,
         at_risk
     )
+
+    def send_email_report(receiver_email, pdf_buffer):
+    yag = yagmail.SMTP("your_email@gmail.com", "your_app_password")
+
+    yag.send(
+        to=receiver_email,
+        subject="Student Performance Executive Report",
+        contents="Attached is the executive performance report.",
+        attachments=pdf_buffer
+    )
     
     st.download_button(
         label="📄 Download Executive PDF",
@@ -453,6 +507,12 @@ if uploaded_file:
         file_name="executive_student_report.pdf",
         mime="application/pdf"
     )
+    
+    email = st.text_input("📧 Enter email to send report")
+
+    if st.button("📤 Send PDF Report"):
+        send_email_report(email, pdf_buffer)
+        st.success("PDF sent successfully")
 
 else:
     st.info("📁 Upload a CSV file to start analytics.")
