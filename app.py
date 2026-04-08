@@ -140,6 +140,10 @@ if uploaded_file:
        (df["PROGRAM"].isin(selected_program))
     ]
 
+    if df.empty:
+        st.warning("No students match selected filters.")
+        st.stop()
+
     # ---------------- GRADE SYSTEM ----------------
     def get_grade(score):
         if score >= 85:
@@ -161,7 +165,9 @@ if uploaded_file:
             return "Needs Upskilling"
         return "High Risk"
 
-    df["PLACEMENT_STATUS"] = df["TOTAL_SCORE"].apply(placement_readiness)
+    df["PLACEMENT_STATUS"] = df["TOTAL_SCORE"].apply(
+        placement_readiness
+    )
 
     # ---------------- KPI SECTION ----------------
     total_students = len(df)
@@ -492,17 +498,17 @@ if uploaded_file:
     )
 
     def send_email_report(receiver_email, pdf_buffer):
-    yag = yagmail.SMTP(
-        "your_email@gmail.com",
-        "your_app_password"
-    )
-
-    yag.send(
-        to=receiver_email,
-        subject="Student Performance Executive Report",
-        contents="Attached is the executive performance report.",
-        attachments=pdf_buffer
-    )
+        yag = yagmail.SMTP(
+            st.secrets["EMAIL"],
+            st.secrets["APP_PASSWORD"]
+        )
+        
+        yag.send(
+            to=receiver_email,
+            subject="Student Performance Executive Report",
+            contents="Attached is the executive performance report.",
+            attachments=pdf_buffer
+       )
     
     st.download_button(
         label="📄 Download Executive PDF",
@@ -510,12 +516,14 @@ if uploaded_file:
         file_name="executive_student_report.pdf",
         mime="application/pdf"
     )
-    
-    email = st.text_input("📧 Enter email to send report")
+
+    st.markdown("### 📧 Email Executive Report")
+    email = st.text_input("Enter recipient email")
 
     if st.button("📤 Send PDF Report"):
-        send_email_report(email, pdf_buffer)
-        st.success("PDF sent successfully")
-
-else:
-    st.info("📁 Upload a CSV file to start analytics.")
+        if email:
+            send_email_report(email, pdf_buffer)
+            st.success("PDF sent successfully")
+        else:
+            st.info("📁 Upload a CSV file to start analytics.")
+ 
