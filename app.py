@@ -5,6 +5,7 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.cluster import KMeans
 from io import BytesIO
 import yagmail
+import hashlib
 
 # PDF
 from reportlab.platypus import (
@@ -23,6 +24,35 @@ st.set_page_config(
     page_icon="🎓",
     layout="wide"
 )
+
+# ---------------- LOGIN SYSTEM ----------------
+USERS = {
+    "admin": hashlib.sha256("admin123".encode()).hexdigest(),
+    "college": hashlib.sha256("college123".encode()).hexdigest()
+}
+
+def check_login(username, password):
+    hashed = hashlib.sha256(password.encode()).hexdigest()
+    return USERS.get(username) == hashed
+
+if "logged_in" not in st.session_state:
+    st.session_state.logged_in = False
+
+if not st.session_state.logged_in:
+    st.title("🔐 AI Academic Login Portal")
+
+    username = st.text_input("👤 Username")
+    password = st.text_input("🔑 Password", type="password")
+
+    if st.button("Login"):
+        if check_login(username, password):
+            st.session_state.logged_in = True
+            st.success("Login successful")
+            st.rerun()
+        else:
+            st.error("Invalid username or password")
+
+    st.stop()
 
 # ---------------- CUSTOM CSS ----------------
 st.markdown("""
@@ -84,6 +114,10 @@ uploaded_file = st.file_uploader("📁 Upload CSV File", type=["csv"])
 
 if uploaded_file:
     df = pd.read_csv(uploaded_file)
+
+if st.sidebar.button("🚪 Logout"):
+    st.session_state.logged_in = False
+    st.rerun()
 
     # ---------------- CLEANING ----------------
     df.columns = [col.strip().replace(" ", "_").upper() for col in df.columns]
