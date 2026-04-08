@@ -161,7 +161,7 @@ if uploaded_file:
             return "Needs Upskilling"
         return "High Risk"
 
-   df["PLACEMENT_STATUS"] = df["TOTAL_SCORE"].apply(placement_readiness)
+    df["PLACEMENT_STATUS"] = df["TOTAL_SCORE"].apply(placement_readiness)
 
     # ---------------- KPI SECTION ----------------
     total_students = len(df)
@@ -492,7 +492,10 @@ if uploaded_file:
     )
 
     def send_email_report(receiver_email, pdf_buffer):
-    yag = yagmail.SMTP("your_email@gmail.com", "your_app_password")
+    yag = yagmail.SMTP(
+        "your_email@gmail.com",
+        "your_app_password"
+    )
 
     yag.send(
         to=receiver_email,
