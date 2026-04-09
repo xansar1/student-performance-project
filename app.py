@@ -28,6 +28,8 @@ from core.tenant_auth import tenant_login
 from core.role_access import apply_role_college_filter
 from core.student_auth import student_login
 from core.student_portal import get_student_record
+from core.parent_auth import parent_login
+from core.parent_portal import get_parent_student_record
 
 # ---------------- PAGE CONFIG ----------------
 st.set_page_config(
