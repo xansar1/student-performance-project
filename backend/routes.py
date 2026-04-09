@@ -15,3 +15,12 @@ def plans():
         "pro": "₹14999/month",
         "enterprise": "custom pricing"
     }
+
+@router.get("/analytics/kpis")
+def get_kpis():
+    return {
+        "total_students": 1200,
+        "avg_score": 78.5,
+        "top_score": 99,
+        "at_risk": 86
+    }
