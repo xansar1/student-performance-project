@@ -1,19 +1,23 @@
 import streamlit as st
 import pandas as pd
 import plotly.express as px
-from sklearn.preprocessing import StandardScaler
-from sklearn.cluster import KMeans
 
 from core.auth import check_login
 from core.data_loader import load_and_clean_data
 from core.analytics import (
-    get_grade,
-    placement_readiness,
-    dropout_risk
+    enrich_student_data,
+    get_kpis,
+    get_topper
 )
-from core.pdf_report import generate_pdf
-from core.mailer import send_email_report
-
+from core.reporting import (
+    generate_pdf_report,
+    send_email_report
+)
+from core.clustering import add_student_clusters
+from core.filters import (
+    apply_academic_filters,
+    validate_filtered_data
+)
 
 # ---------------- PAGE CONFIG ----------------
 st.set_page_config(
@@ -22,7 +26,7 @@ st.set_page_config(
     layout="wide"
 )
 
-# ---------------- LOGIN SYSTEM ----------------
+# ---------------- LOGIN ----------------
 if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
 
@@ -108,35 +112,35 @@ if uploaded_file:
         default=df["PROGRAM"].unique()
     )
 
-    df = df[
-        (df["UNIVERSITY"].isin(selected_university)) &
-        (df["PROGRAM"].isin(selected_program))
-    ]
-
-    if df.empty:
-        st.warning("No students match selected filters.")
+    try:
+        df = apply_academic_filters(
+            df,
+            selected_university,
+            selected_program
+        )
+        validate_filtered_data(df)
+    except ValueError as e:
+        st.warning(str(e))
         st.stop()
 
-    # ---------------- ANALYTICS COLUMNS ----------------
-    df["GRADE"] = df["TOTAL_SCORE"].apply(get_grade)
-    df["PLACEMENT_STATUS"] = df["TOTAL_SCORE"].apply(
-        placement_readiness
-    )
-    df["DROPOUT_RISK"] = df["TOTAL_SCORE"].apply(dropout_risk)
+    # ---------------- ANALYTICS ----------------
+    df = enrich_student_data(df)
+    df = add_student_clusters(df)
 
-    # ---------------- KPI ----------------
-    total_students = len(df)
-    avg_score = round(df["TOTAL_SCORE"].mean(), 2)
-    top_score = int(df["TOTAL_SCORE"].max())
-    at_risk = len(df[df["TOTAL_SCORE"] < 50])
+    kpis = get_kpis(df)
+
+    total_students = kpis["total_students"]
+    avg_score = kpis["avg_score"]
+    top_score = kpis["top_score"]
+    at_risk = kpis["at_risk"]
+
+    topper = get_topper(df)
 
     c1, c2, c3, c4 = st.columns(4)
     c1.metric("👨‍🎓 Total Students", total_students)
     c2.metric("📈 Average Score", avg_score)
     c3.metric("🏆 Top Score", top_score)
     c4.metric("⚠️ At Risk", at_risk)
-
-    topper = df.loc[df["TOTAL_SCORE"].idxmax()]
 
     st.success(
         f"🏆 Top Performer: {topper['STUDENT_NAME']} | "
@@ -173,13 +177,7 @@ if uploaded_file:
     st.subheader("📄 Student Dataset")
     st.dataframe(df, use_container_width=True)
 
-    # ---------------- CLUSTERING ----------------
-    features = df[["GENERAL_SCORE", "DOMAIN_SCORE", "TOTAL_SCORE"]]
-    scaled = StandardScaler().fit_transform(features)
-
-    model = KMeans(n_clusters=3, random_state=42, n_init=10)
-    df["CLUSTER"] = model.fit_predict(scaled)
-
+    # ---------------- CLUSTER CHART ----------------
     cluster_fig = px.scatter(
         df,
         x="GENERAL_SCORE",
@@ -192,7 +190,7 @@ if uploaded_file:
     st.plotly_chart(cluster_fig, use_container_width=True)
 
     # ---------------- PDF ----------------
-    pdf_buffer = generate_pdf(
+    pdf_buffer = generate_pdf_report(
         df,
         total_students,
         avg_score,
@@ -213,7 +211,12 @@ if uploaded_file:
 
     if st.button("📤 Send PDF Report"):
         if email:
-            send_email_report(email, pdf_buffer)
+            send_email_report(
+                email,
+                pdf_buffer,
+                st.secrets["EMAIL"],
+                st.secrets["APP_PASSWORD"]
+            )
             st.success("PDF sent successfully")
         else:
             st.warning("Please enter recipient email")
