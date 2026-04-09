@@ -160,60 +160,60 @@ except ValueError as e:
     st.warning(str(e))
     st.stop()
 
-    # ---------------- ANALYTICS ----------------
-    df = enrich_student_data(df)
-    df = add_student_clusters(df)
-    df = add_ai_dropout_prediction(df)
-    df = add_intervention_recommendations(df)
-    df = add_next_semester_forecast(df)
-    df = add_placement_prediction(df)
+# ---------------- ANALYTICS ----------------
+df = enrich_student_data(df)
+df = add_student_clusters(df)
+df = add_ai_dropout_prediction(df)
+df = add_intervention_recommendations(df)
+df = add_next_semester_forecast(df)
+df = add_placement_prediction(df)
     
 
-    kpis = get_kpis(df)
+kpis = get_kpis(df)
 
-    total_students = kpis["total_students"]
-    avg_score = kpis["avg_score"]
-    top_score = kpis["top_score"]
-    at_risk = kpis["at_risk"]
+total_students = kpis["total_students"]
+avg_score = kpis["avg_score"]
+top_score = kpis["top_score"]
+at_risk = kpis["at_risk"]
 
-    topper = get_topper(df)
+topper = get_topper(df)
 
-    c1, c2, c3, c4 = st.columns(4)
-    c1.metric("👨‍🎓 Total Students", total_students)
-    c2.metric("📈 Average Score", avg_score)
-    c3.metric("🏆 Top Score", top_score)
-    c4.metric("⚠️ At Risk", at_risk)
+c1, c2, c3, c4 = st.columns(4)
+c1.metric("👨‍🎓 Total Students", total_students)
+c2.metric("📈 Average Score", avg_score)
+c3.metric("🏆 Top Score", top_score)
+c4.metric("⚠️ At Risk", at_risk)
 
-    st.success(
-        f"🏆 Top Performer: {topper['STUDENT_NAME']} | "
-        f"{topper['UNIVERSITY']} | Score: {topper['TOTAL_SCORE']}"
-    )
+st.success(
+    f"🏆 Top Performer: {topper['STUDENT_NAME']} | "
+    f"{topper['UNIVERSITY']} | Score: {topper['TOTAL_SCORE']}"
+)
 
-    # ---------------- SEARCH ----------------
-    student_name = st.selectbox(
-        "🔍 Select Student",
-        df["STUDENT_NAME"].sort_values().unique()
-    )
+# ---------------- SEARCH ----------------
+student_name = st.selectbox(
+    "🔍 Select Student",
+    df["STUDENT_NAME"].sort_values().unique()
+)
 
-    student_row = df[df["STUDENT_NAME"] == student_name].iloc[0]
+student_row = df[df["STUDENT_NAME"] == student_name].iloc[0]
 
-    university_avg = round(
-        df[df["UNIVERSITY"] == student_row["UNIVERSITY"]]["TOTAL_SCORE"].mean(),
-        2
-    )
+university_avg = round(
+    df[df["UNIVERSITY"] == student_row["UNIVERSITY"]]["TOTAL_SCORE"].mean(),
+    2
+)
 
-    compare_df = pd.DataFrame({
-        "Category": ["Student Score", "University Avg"],
-        "Score": [student_row["TOTAL_SCORE"], university_avg]
-    })
+compare_df = pd.DataFrame({
+    "Category": ["Student Score", "University Avg"],
+    "Score": [student_row["TOTAL_SCORE"], university_avg]
+})
 
-    fig_compare = px.bar(
-        compare_df,
-        x="Category",
-        y="Score",
-        title=f"{student_row['STUDENT_NAME']} Benchmark Comparison"
-    )
-    st.plotly_chart(fig_compare, use_container_width=True)
+fig_compare = px.bar(
+    compare_df,
+    x="Category",
+    y="Score",
+    title=f"{student_row['STUDENT_NAME']} Benchmark Comparison"
+)
+ st.plotly_chart(fig_compare, use_container_width=True)
 
     # ---------------- DATASET ----------------
     st.subheader("📄 Student Dataset")
@@ -327,15 +327,15 @@ except ValueError as e:
 
     st.markdown(advisor_report)
 
-    # ---------------- STUDENT PORTAL ----------------
-    if student_mode:
-        st.subheader("👨‍🎓 Student Self-Service Portal")
+   # ---------------- STUDENT PORTAL ----------------
+   if student_mode:
+       st.subheader("👨‍🎓 Student Self-Service Portal")
 
-        student_user = st.text_input("Student Username")
-        student_pass = st.text_input(
-            "Student Password",
-            type="password"
-        )
+       student_user = st.text_input("Student Username")
+       student_pass = st.text_input(
+           "Student Password",
+           type="password"
+       )
 
        if st.button("Student Login"):
            if student_login(student_user, student_pass):
