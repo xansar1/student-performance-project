@@ -125,37 +125,40 @@ if uploaded_file:
         st.error(str(e))
         st.stop()
  # ------------ MULTY COLLEGE FILTER --------------
+df = apply_role_college_filter(
+    df,
+    st.session_state.user_info
+)
+
+if df.empty:
+    st.warning("No data available for your college access.")
+    st.stop()
+
+# ---------------- FILTERS ----------------
+st.sidebar.header("🎛 Filters")
+
+selected_university = st.sidebar.multiselect(
+    "Select University",
+    options=df["UNIVERSITY"].unique(),
+    default=df["UNIVERSITY"].unique()
+)
+
+selected_program = st.sidebar.multiselect(
+    "Select Program",
+    options=df["PROGRAM"].unique(),
+    default=df["PROGRAM"].unique()
+)
+
 try:
-     df = apply_role_college_filter(
-         df,
-         st.session_state.user_info
-     )
-
-    # ---------------- FILTERS ----------------
-    st.sidebar.header("🎛 Filters")
-
-    selected_university = st.sidebar.multiselect(
-        "Select University",
-        options=df["UNIVERSITY"].unique(),
-        default=df["UNIVERSITY"].unique()
+    df = apply_academic_filters(
+        df,
+        selected_university,
+        selected_program
     )
-
-    selected_program = st.sidebar.multiselect(
-        "Select Program",
-        options=df["PROGRAM"].unique(),
-        default=df["PROGRAM"].unique()
-    )
-
-    try:
-        df = apply_academic_filters(
-            df,
-            selected_university,
-            selected_program
-        )
-        validate_filtered_data(df)
-    except ValueError as e:
-        st.warning(str(e))
-        st.stop()
+    validate_filtered_data(df)
+except ValueError as e:
+    st.warning(str(e))
+    st.stop()
 
     # ---------------- ANALYTICS ----------------
     df = enrich_student_data(df)
@@ -328,11 +331,11 @@ try:
     if student_mode:
         st.subheader("👨‍🎓 Student Self-Service Portal")
 
-       student_user = st.text_input("Student Username")
-       student_pass = st.text_input(
-           "Student Password",
-           type="password"
-       )
+        student_user = st.text_input("Student Username")
+        student_pass = st.text_input(
+            "Student Password",
+            type="password"
+        )
 
        if st.button("Student Login"):
            if student_login(student_user, student_pass):
