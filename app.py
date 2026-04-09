@@ -2,7 +2,6 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 
-from core.auth import check_login
 from core.data_loader import load_and_clean_data
 from core.analytics import (
     enrich_student_data,
@@ -30,7 +29,6 @@ from core.student_auth import student_login
 from core.student_portal import get_student_record
 from core.parent_auth import parent_login
 from core.parent_portal import get_parent_student_record
-
 from core.ml_training import (
     train_dropout_model,
     train_placement_model
@@ -59,7 +57,7 @@ if st.session_state.user_info is None:
 
     if st.button("Login"):
         user_info = tenant_login(username, password)
-        
+
         if user_info:
             st.session_state.user_info = user_info
             st.success("Login successful")
@@ -74,15 +72,7 @@ if st.sidebar.button("🚪 Logout"):
     st.session_state.user_info = None
     st.rerun()
 
-# ---------------- CUSTOM CSS ----------------
-st.markdown("""
-<style>
-.main {
-    background-color: #0e1117;
-}
-</style>
-""", unsafe_allow_html=True)
-
+# ---------------- PAGE HEADER ----------------
 st.title("🎓 AI Academic Performance Analytics Dashboard")
 st.caption("Premium SaaS-style student performance intelligence system")
 
@@ -101,38 +91,43 @@ sample_df = pd.DataFrame({
     "TOTAL_SCORE": [87, 78]
 })
 
-csv_sample = sample_df.to_csv(index=False).encode("utf-8")
-
 st.download_button(
     "📥 Download Sample CSV Format",
-    data=csv_sample,
+    data=sample_df.to_csv(index=False).encode("utf-8"),
     file_name="sample_format.csv",
     mime="text/csv"
 )
 
+# ---------------- SIDEBAR TOGGLES ----------------
 st.sidebar.markdown("## 👨‍🎓 Student Portal")
 student_mode = st.sidebar.toggle("Enable Student Login")
 
 st.sidebar.markdown("## 👨‍👩‍👧 Parent Portal")
 parent_mode = st.sidebar.toggle("Enable Parent Login")
+
 # ---------------- FILE UPLOAD ----------------
 uploaded_file = st.file_uploader("📁 Upload CSV File", type=["csv"])
 
-if uploaded_file:
-    try:
-        df = load_and_clean_data(uploaded_file)
-    except ValueError as e:
-        st.error(str(e))
-        st.stop()
-    # ------------ tenant isolation --------------
-    df = apply_role_college_filter(
-        df,
-        st.session_state.user_info
-    )
+if not uploaded_file:
+    st.info("📁 Upload CSV file to access analytics dashboard")
+    st.stop()
 
-    if df.empty:
-        st.warning("No data available for your college access.")
-        st.stop()
+# ---------------- LOAD DATA ----------------
+try:
+    df = load_and_clean_data(uploaded_file)
+except ValueError as e:
+    st.error(str(e))
+    st.stop()
+
+# ---------------- TENANT ISOLATION ----------------
+df = apply_role_college_filter(
+    df,
+    st.session_state.user_info
+)
+
+if df.empty:
+    st.warning("No data available for your college access.")
+    st.stop()
 
 # ---------------- FILTERS ----------------
 st.sidebar.header("🎛 Filters")
@@ -160,15 +155,15 @@ except ValueError as e:
     st.warning(str(e))
     st.stop()
 
-# ---------------- ANALYTICS ----------------
+# ---------------- AI ENRICHMENTS ----------------
 df = enrich_student_data(df)
 df = add_student_clusters(df)
 df = add_ai_dropout_prediction(df)
 df = add_intervention_recommendations(df)
 df = add_next_semester_forecast(df)
 df = add_placement_prediction(df)
-    
 
+# ---------------- KPI ----------------
 kpis = get_kpis(df)
 
 total_students = kpis["total_students"]
@@ -189,7 +184,7 @@ st.success(
     f"{topper['UNIVERSITY']} | Score: {topper['TOTAL_SCORE']}"
 )
 
-# ---------------- SEARCH ----------------
+# ---------------- STUDENT SEARCH ----------------
 student_name = st.selectbox(
     "🔍 Select Student",
     df["STUDENT_NAME"].sort_values().unique()
@@ -219,7 +214,7 @@ st.plotly_chart(fig_compare, use_container_width=True)
 st.subheader("📄 Student Dataset")
 st.dataframe(df, use_container_width=True)
 
-# ---------------- CLUSTER CHART ----------------
+# ---------------- CLUSTER ----------------
 cluster_fig = px.scatter(
     df,
     x="GENERAL_SCORE",
@@ -230,8 +225,8 @@ cluster_fig = px.scatter(
     title="AI Cluster Segmentation"
 )
 st.plotly_chart(cluster_fig, use_container_width=True)
-    
-# ---------------- DROPOUT CHART --------------
+
+# ---------------- DROPOUT ----------------
 st.subheader("🤖 AI Dropout Prediction")
 
 risk_fig = px.histogram(
@@ -242,9 +237,8 @@ risk_fig = px.histogram(
 )
 st.plotly_chart(risk_fig, use_container_width=True)
 
-# ------------ INTERVENTION ENGINE ------------
+# ---------------- INTERVENTION ----------------
 st.subheader("🎯 Personalized AI Intervention Engine")
-
 st.dataframe(
     df[
         [
@@ -257,7 +251,7 @@ st.dataframe(
     use_container_width=True
 )
 
-# --------------- SEMESTER FORECASTING --------------
+# ---------------- FORECAST ----------------
 st.subheader("📈 Next Semester Forecasting AI")
 
 forecast_fig = px.scatter(
@@ -269,18 +263,7 @@ forecast_fig = px.scatter(
 )
 st.plotly_chart(forecast_fig, use_container_width=True)
 
-# -------------- FORECAST TABLE ------------
-st.dataframe(
-    df[
-        [ 
-            "STUDENT_NAME",
-            "TOTAL_SCORE",
-            "NEXT_SEM_PREDICTION"
-        ]
-    ],
-    use_container_width=True
-)
-# ----------- PLACEMENT AI ------------
+# ---------------- PLACEMENT ----------------
 st.subheader("🎓 Placement Prediction AI")
 
 placement_fig = px.histogram(
@@ -291,40 +274,14 @@ placement_fig = px.histogram(
 )
 st.plotly_chart(placement_fig, use_container_width=True)
 
-st.dataframe(
-    df[
-        [
-            "STUDENT_NAME",
-            "PLACEMENT_PROBABILITY",
-            "PLACEMENT_AI_STATUS"
-        ]
-    ],
-    use_container_width=True
-)
-
-# ---------------- MODEL EVALUATION ----------------
+# ---------------- MODEL EVAL ----------------
 st.subheader("📊 AI Model Evaluation Dashboard")
-
 eval_df = build_evaluation_dataframe(df)
-
 st.dataframe(eval_df, use_container_width=True)
 
-eval_chart = px.bar(
-    eval_df,
-    x="METRIC",
-    y="VALUE",
-    color="MODEL",
-    barmode="group",
-    title="AI Model Performance Metrics"
-)
-
-st.plotly_chart(eval_chart, use_container_width=True)
-
-# ------------- GENAI ADVISOR -------------
+# ---------------- GENAI ADVISOR ----------------
 st.subheader("🧠 GenAI Academic Advisor")
-
 advisor_report = generate_student_advisor_report(student_row)
-
 st.markdown(advisor_report)
 
 # ---------------- STUDENT PORTAL ----------------
@@ -332,39 +289,26 @@ if student_mode:
     st.subheader("👨‍🎓 Student Self-Service Portal")
 
     student_user = st.text_input("Student Username")
-    student_pass = st.text_input(
-        "Student Password",
-        type="password"
-    )
+    student_pass = st.text_input("Student Password", type="password")
 
     if st.button("Student Login"):
         if student_login(student_user, student_pass):
             student_data = get_student_record(df, student_user)
 
-            if student_data is None:
-                st.warning("Student record not found.")
-            else:
-                st.success("Student login successful")
-
+            if student_data is not None:
                 s1, s2, s3 = st.columns(3)
-
-                s1.metric(
-                    "📈 Current Score",
-                    student_data["TOTAL_SCORE"]
-                )
-
+                s1.metric("📈 Current Score", student_data["TOTAL_SCORE"])
                 s2.metric(
                     "🎯 Placement Probability",
                     round(student_data["PLACEMENT_PROBABILITY"], 2)
                 )
-
                 s3.metric(
                     "📈 Next Semester Forecast",
                     round(student_data["NEXT_SEM_PREDICTION"], 2)
                 )
-
-                st.markdown("### 🧠 AI Mentor Advice")
                 st.info(student_data["AI_INTERVENTION"])
+            else:
+                st.warning("Student record not found.")
         else:
             st.error("Invalid student login")
 
@@ -373,52 +317,30 @@ if parent_mode:
     st.subheader("👨‍👩‍👧 Parent Progress Portal")
 
     parent_user = st.text_input("Parent Username")
-    parent_pass = st.text_input(
-        "Parent Password",
-        type="password"
-    )
+    parent_pass = st.text_input("Parent Password", type="password")
 
     if st.button("Parent Login"):
         if parent_login(parent_user, parent_pass):
-            student_data = get_parent_student_record(
-                df,
-                parent_user
-            )
+            student_data = get_parent_student_record(df, parent_user)
 
-            if student_data is None:
-                st.warning("Student record not found.")
-            else:
-                st.success("Parent login successful")
-
+            if student_data is not None:
                 p1, p2, p3 = st.columns(3)
-
-                p1.metric(
-                    "📈 Current Score",
-                    student_data["TOTAL_SCORE"]
-                )
-
+                p1.metric("📈 Current Score", student_data["TOTAL_SCORE"])
                 p2.metric(
                     "🚨 Dropout Risk",
                     round(student_data["AI_DROPOUT_RISK"], 2)
                 )
-
                 p3.metric(
                     "🎯 Placement Probability",
                     round(student_data["PLACEMENT_PROBABILITY"], 2)
                 )
-
-                st.markdown("### 📈 Semester Forecast")
-                st.info(
-                    f"Expected next semester score: "
-                    f"{round(student_data['NEXT_SEM_PREDICTION'], 2)}"
-                )
-
-                st.markdown("### 🧠 Parent Advisory")
                 st.warning(student_data["AI_INTERVENTION"])
+            else:
+                st.warning("Student record not found.")
         else:
             st.error("Invalid parent login")
 
-# ---------------- REAL ML PIPELINE ----------------
+# ---------------- REAL ML ----------------
 st.subheader("🌲 Real ML Training Pipeline")
 
 if st.button("🚀 Train Real ML Models"):
@@ -444,7 +366,7 @@ if st.button("🚀 Train Real ML Models"):
         use_container_width=True
     )
 
-# ---------------- PDF ----------------
+# ---------------- REPORTING ----------------
 pdf_buffer = generate_pdf_report(
     df,
     total_students,
@@ -460,7 +382,6 @@ st.download_button(
     mime="application/pdf"
 )
 
-# ---------------- EMAIL ----------------
 st.markdown("### 📧 Email Executive Report")
 email = st.text_input("Enter recipient email")
 
