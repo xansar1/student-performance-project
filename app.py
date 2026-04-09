@@ -31,6 +31,15 @@ from core.student_portal import get_student_record
 from core.parent_auth import parent_login
 from core.parent_portal import get_parent_student_record
 
+from core.ml_training import (
+    train_dropout_model,
+    train_placement_model
+)
+from core.ml_inference import (
+    predict_dropout_probability,
+    predict_placement_probability
+)
+
 # ---------------- PAGE CONFIG ----------------
 st.set_page_config(
     page_title="AI Academic Performance Analytics",
@@ -418,6 +427,31 @@ try:
             else:
                 st.error("Invalid parent login")
 
+    # ---------------- REAL ML PIPELINE ----------------
+    st.subheader("🌲 Real ML Training Pipeline")
+
+    if st.button("🚀 Train Real ML Models"):
+        dropout_acc = train_dropout_model(df)
+        placement_acc = train_placement_model(df)
+
+        st.success(
+            f"Dropout Model Accuracy: {dropout_acc} | "
+            f"Placement Model Accuracy: {placement_acc}"
+        )
+
+        df = predict_dropout_probability(df)
+        df = predict_placement_probability(df)
+
+        st.dataframe(
+            df[
+                [
+                    "STUDENT_NAME",
+                    "REAL_ML_DROPOUT_PROB",
+                    "REAL_ML_PLACEMENT_PROB"
+                ]
+            ],
+            use_container_width=True
+        )
     # ---------------- PDF ----------------
     pdf_buffer = generate_pdf_report(
         df,
