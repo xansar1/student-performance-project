@@ -1,11 +1,11 @@
-import hashlib
+def get_student_record(df, username):
+    username = username.strip().lower()
 
-STUDENT_USERS = {
-    "aarav": hashlib.sha256("student123".encode()).hexdigest(),
-    "meera": hashlib.sha256("student123".encode()).hexdigest()
-}
+    student_row = df[
+        df["STUDENT_NAME"].str.lower() == username
+    ]
 
+    if student_row.empty:
+        return None
 
-def student_login(username, password):
-    hashed = hashlib.sha256(password.encode()).hexdigest()
-    return STUDENT_USERS.get(username) == hashed
+    return student_row.iloc[0]
