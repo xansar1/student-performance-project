@@ -124,15 +124,15 @@ if uploaded_file:
     except ValueError as e:
         st.error(str(e))
         st.stop()
- # ------------ tenant isolation --------------
- df = apply_role_college_filter(
-     df,
-     st.session_state.user_info
- )
+    # ------------ tenant isolation --------------
+    df = apply_role_college_filter(
+        df,
+        st.session_state.user_info
+    )
 
- if df.empty:
-     st.warning("No data available for your college access.")
-     st.stop()
+    if df.empty:
+        st.warning("No data available for your college access.")
+        st.stop()
 
 # ---------------- FILTERS ----------------
 st.sidebar.header("🎛 Filters")
