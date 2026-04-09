@@ -24,6 +24,8 @@ from core.forecasting import add_next_semester_forecast
 from core.placement_ai import add_placement_prediction
 from core.model_evaluation import build_evaluation_dataframe
 from core.genai_advisor import generate_student_advisor_report
+from core.tenant_auth import tenant_login
+from core.role_access import aply_role_college_filter
 
 # ---------------- PAGE CONFIG ----------------
 st.set_page_config(
@@ -33,22 +35,24 @@ st.set_page_config(
 )
 
 # ---------------- LOGIN ----------------
-if "logged_in" not in st.session_state:
-    st.session_state.logged_in = False
+if "user_info" not in st.session_state:
+    st.session_state.user_info = None
 
-if not st.session_state.logged_in:
-    st.title("🔐 AI Academic Login Portal")
+if st.session_state.user_info is None:
+    st.title("🔐 Multi College SaaS Login")
 
     username = st.text_input("👤 Username")
     password = st.text_input("🔑 Password", type="password")
 
     if st.button("Login"):
-        if check_login(username, password):
-            st.session_state.logged_in = True
+        user_info = tenant_login(username, password)
+        
+        if user_info:
+            st.session_state.user_info = user_info
             st.success("Login successful")
             st.rerun()
         else:
-            st.error("Invalid username or password")
+            st.error("Invalid credentials")
 
     st.stop()
 
@@ -103,6 +107,16 @@ if uploaded_file:
         st.error(str(e))
         st.stop()
 
+    # ------------ MULTY COLLEGE FILTER --------------
+    df = apply_role_college_filter(
+        df,
+        st.session_state.user_info
+    )
+
+    if df.empty:
+        st.warning("No data available for your college access.")
+        st.stop()
+
     # ---------------- FILTERS ----------------
     st.sidebar.header("🎛 Filters")
 
@@ -136,6 +150,7 @@ if uploaded_file:
     df = add_intervention_recommendations(df)
     df = add_next_semester_forecast(df)
     df = add_placement_prediction(df)
+    
 
     kpis = get_kpis(df)
 
