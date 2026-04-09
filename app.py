@@ -22,6 +22,7 @@ from core.predictive_model import add_ai_dropout_prediction
 from core.intervention_engine import add_intervention_recommendations
 from core.forecasting import add_next_semester_forecast
 from core.placement_ai import add_placement_prediction
+from core.model_evaluation import build_evaluation_dataframe
 
 # ---------------- PAGE CONFIG ----------------
 st.set_page_config(
@@ -246,7 +247,7 @@ if uploaded_file:
         ],
         use_container_width=True
     )
-    # ----------- PLACEMENT PREDICTION ------------
+    # ----------- PLACEMENT AI ------------
     st.subheader("🎓 Placement Prediction AI")
 
     placement_fig = px.histogram(
@@ -267,6 +268,24 @@ if uploaded_file:
          ],
          use_container_width=True
     )
+
+    # ---------------- MODEL EVALUATION ----------------
+    st.subheader("📊 AI Model Evaluation Dashboard")
+
+    eval_df = build_evaluation_dataframe(df)
+
+    st.dataframe(eval_df, use_container_width=True)
+
+    eval_chart = px.bar(
+        eval_df,
+        x="METRIC",
+        y="VALUE",
+        color="MODEL",
+        barmode="group",
+        title="AI Model Performance Metrics"
+    )
+
+    st.plotly_chart(eval_chart, use_container_width=True)
 
     # ---------------- PDF ----------------
     pdf_buffer = generate_pdf_report(
