@@ -45,7 +45,7 @@ st.set_page_config(
     page_icon="🎓",
     layout="wide"
 )
-API_URL - "https://fantastic-space-garbanzo-97w9g7wgx77p3pvww-8000.app.github.dev"
+API_URL = "https://fantastic-space-garbanzo-97w9g7wgx77p3pvww-8000.app.github.dev"
 
 # ---------------- LOGIN ----------------
 if "user_info" not in st.session_state:
@@ -168,7 +168,13 @@ df = add_placement_prediction(df)
 # ---------------- KPI ----------------
 kpis = get_kpis(df)
 
-api_kpis = requests.get(f"{API_URL}/analytics/kpis").json()
+try:
+    api_kpis = requests.get(f"{API_URL}/analytics/kpis", timeout=5).json()
+except Exception:
+    api_kpis = {
+        "total_students": "N/A",
+        "avg_score": "N/A"
+    }
 
 total_students = kpis["total_students"]
 avg_score = kpis["avg_score"]
