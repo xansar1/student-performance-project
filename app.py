@@ -23,6 +23,7 @@ from core.intervention_engine import add_intervention_recommendations
 from core.forecasting import add_next_semester_forecast
 from core.placement_ai import add_placement_prediction
 from core.model_evaluation import build_evaluation_dataframe
+from core.genai_advisor import generate_student_advisor_report
 
 # ---------------- PAGE CONFIG ----------------
 st.set_page_config(
@@ -286,6 +287,13 @@ if uploaded_file:
     )
 
     st.plotly_chart(eval_chart, use_container_width=True)
+
+    # ------------- GENAI ADVISOR -------------
+    st.subheader("🧠 GenAI Academic Advisor")
+
+    advisor_report = generate_student_advisor_report(student_row)
+
+    st.markdown(advisor_report)
 
     # ---------------- PDF ----------------
     pdf_buffer = generate_pdf_report(
