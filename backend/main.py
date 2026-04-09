@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from routes import router
+from backend.routes import router
 
 app = FastAPI(
     title="AI Academic SaaS API"
