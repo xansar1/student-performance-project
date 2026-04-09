@@ -19,6 +19,7 @@ from core.filters import (
     validate_filtered_data
 )
 from core.predictive_model import add_ai_dropout_prediction
+from core.intervention_engine import add_intervention_recommendations
 
 # ---------------- PAGE CONFIG ----------------
 st.set_page_config(
@@ -128,6 +129,7 @@ if uploaded_file:
     df = enrich_student_data(df)
     df = add_student_clusters(df)
     df = add_ai_dropout_prediction(df)
+    df = add_intervention_recommendations(df)
 
     kpis = get_kpis(df)
 
@@ -190,7 +192,8 @@ if uploaded_file:
         title="AI Cluster Segmentation"
     )
     st.plotly_chart(cluster_fig, use_container_width=True)
-
+    
+    # ---------------- DROPOUT CHART --------------
     st.subheader("🤖 AI Dropout Prediction")
 
     risk_fig = px.histogram(
@@ -200,6 +203,20 @@ if uploaded_file:
         title="AI Dropout Risk Probability Distribution"
     )
     st.plotly_chart(risk_fig, use_container_width=True)
+
+    st.subheader("🎯 Personalized AI Intervention Engine")
+
+    st.dataframe(
+        df[
+            [
+               "STUDENT_NAME",
+               "TOTAL_SCORE",
+               "AI_DROPOUT_RISK",
+               "AI_INTERVENTION"
+            ]
+        ],
+        use_container_width=True
+    )
 
     # ---------------- PDF ----------------
     pdf_buffer = generate_pdf_report(
