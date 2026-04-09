@@ -102,8 +102,10 @@ st.download_button(
 )
 
 st.sidebar.markdown("## 👨‍🎓 Student Portal")
-
 student_mode = st.sidebar.toggle("Enable Student Login")
+
+st.sidebar.markdown("## 👨‍👩‍👧 Parent Portal")
+parent_mode = st.sidebar.toggle("Enable Parent Login")
 # ---------------- FILE UPLOAD ----------------
 uploaded_file = st.file_uploader("📁 Upload CSV File", type=["csv"])
 
@@ -359,6 +361,62 @@ try:
                    st.info(student_data["AI_INTERVENTION"])
            else:
                st.error("Invalid student login")
+
+    # ---------------- PARENT PORTAL ----------------
+    if parent_mode:
+        st.subheader("👨‍👩‍👧 Parent Progress Portal")
+
+        parent_user = st.text_input("Parent Username")
+        parent_pass = st.text_input(
+            "Parent Password",
+            type="password"
+        )
+
+        if st.button("Parent Login"):
+            if parent_login(parent_user, parent_pass):
+                student_data = get_parent_student_record(
+                    df,
+                    parent_user
+                )
+
+                if student_data is None:
+                    st.warning("Student record not found.")
+                else:
+                    st.success("Parent login successful")
+
+                    p1, p2, p3 = st.columns(3)
+
+                    p1.metric(
+                        "📈 Current Score",
+                        student_data["TOTAL_SCORE"]
+                    )
+
+                    p2.metric(
+                        "🚨 Dropout Risk",
+                        round(
+                            student_data["AI_DROPOUT_RISK"],
+                            2
+                        )
+                    )
+
+                    p3.metric(
+                        "🎯 Placement Probability",
+                        round(
+                            student_data["PLACEMENT_PROBABILITY"],
+                            2
+                        )
+                    )
+
+                    st.markdown("### 📈 Semester Forecast")
+                    st.info(
+                        f"Expected next semester score: "
+                        f"{round(student_data['NEXT_SEM_PREDICTION'], 2)}"
+                    )
+
+                    st.markdown("### 🧠 Parent Advisory")
+                    st.warning(student_data["AI_INTERVENTION"])
+            else:
+                st.error("Invalid parent login")
 
     # ---------------- PDF ----------------
     pdf_buffer = generate_pdf_report(
