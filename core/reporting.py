@@ -1,5 +1,6 @@
 from io import BytesIO
 import yagmail
+import tempfile
 
 from reportlab.platypus import (
     SimpleDocTemplate,
@@ -103,16 +104,17 @@ def send_email_report(
     sender_email,
     app_password
 ):
-    yag = yagmail.SMTP(
-        sender_email,
-        app_password
-    )
+    import tempfile
+
+    with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp:
+        tmp.write(pdf_buffer.getvalue())
+        temp_pdf_path = tmp.name
+
+    yag = yagmail.SMTP(sender_email, app_password)
 
     yag.send(
         to=receiver_email,
         subject="Student Performance Executive Report",
         contents="Attached is the executive performance report.",
-        attachments={
-            "executive_student_report.pdf": pdf_buffer.getvalue()
-        }
+        attachments=temp_pdf_path
     )
