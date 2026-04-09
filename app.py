@@ -26,6 +26,8 @@ from core.model_evaluation import build_evaluation_dataframe
 from core.genai_advisor import generate_student_advisor_report
 from core.tenant_auth import tenant_login
 from core.role_access import aply_role_college_filter
+from core.student_auth import student_login
+from core.student_portal import get_student_record
 
 # ---------------- PAGE CONFIG ----------------
 st.set_page_config(
@@ -97,6 +99,9 @@ st.download_button(
     mime="text/csv"
 )
 
+st.sidebar.markdown("## 👨‍🎓 Student Portal")
+
+student_mode = st.sidebar.toggle("Enable Student Login")
 # ---------------- FILE UPLOAD ----------------
 uploaded_file = st.file_uploader("📁 Upload CSV File", type=["csv"])
 
@@ -106,6 +111,50 @@ if uploaded_file:
     except ValueError as e:
         st.error(str(e))
         st.stop()
+
+if student_mode:
+    st.subheader("👨‍🎓 Student Self-Service Portal")
+
+    student_user = st.text_input("Student Username")
+    student_pass = st.text_input(
+        "Student Password",
+        type="password"
+    )
+
+    if st.button("Student Login"):
+        if student_login(student_user, student_pass):
+            student_data = get_student_record(df, student_user)
+
+            if student_data is None:
+                st.warning("Student record not found.")
+            else:
+                st.success("Student login successful")
+
+                st.metric(
+                    "📈 Current Score",
+                    student_data["TOTAL_SCORE"]
+                )
+
+                st.metric(
+                    "🎯 Placement Probability",
+                    round(
+                        student_data["PLACEMENT_PROBABILITY"],
+                        2
+                    )
+                )
+
+                st.metric(
+                    "📈 Next Semester Forecast",
+                    round(
+                        student_data["NEXT_SEM_PREDICTION"],
+                        2
+                    )
+                )
+
+                st.markdown("### 🧠 AI Mentor Advice")
+                st.info(student_data["AI_INTERVENTION"])
+        else:
+            st.error("Invalid student login")
 
     # ------------ MULTY COLLEGE FILTER --------------
     df = apply_role_college_filter(
