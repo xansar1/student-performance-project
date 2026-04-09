@@ -21,6 +21,7 @@ from core.filters import (
 from core.predictive_model import add_ai_dropout_prediction
 from core.intervention_engine import add_intervention_recommendations
 from core.forecasting import add_next_semester_forecast
+from core.placement_ai import add_placement_prediction
 
 # ---------------- PAGE CONFIG ----------------
 st.set_page_config(
@@ -132,6 +133,7 @@ if uploaded_file:
     df = add_ai_dropout_prediction(df)
     df = add_intervention_recommendations(df)
     df = add_next_semester_forecast(df)
+    df = add_placement_prediction(df)
 
     kpis = get_kpis(df)
 
@@ -243,6 +245,27 @@ if uploaded_file:
             ]
         ],
         use_container_width=True
+    )
+    # ----------- PLACEMENT PREDICTION ------------
+    st.subheader("🎓 Placement Prediction AI")
+
+    placement_fig = px.histogram(
+        df,
+        x="PLACEMENT_PROBABILITY",
+        nbins=20,
+        title="Placement Probability Distribution"
+    )
+    st.plotly_chart(placement_fig, use_container_width=True)
+
+    st.dataframe(
+        df[
+            [
+               "STUDENT_NAME",
+               "PLACEMENT_PROBABILITY",
+               "PLACEMENT_AI_STATUS"
+            ]
+         ],
+         use_container_width=True
     )
 
     # ---------------- PDF ----------------
