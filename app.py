@@ -1,5 +1,6 @@
 import streamlit as st
 import pandas as pd
+import requests
 import plotly.express as px
 
 from core.data_loader import load_and_clean_data
@@ -44,6 +45,7 @@ st.set_page_config(
     page_icon="🎓",
     layout="wide"
 )
+API_URL - "https://fantastic-space-garbanzo-97w9g7wgx77p3pvww-8000.app.github.dev"
 
 # ---------------- LOGIN ----------------
 if "user_info" not in st.session_state:
@@ -166,6 +168,8 @@ df = add_placement_prediction(df)
 # ---------------- KPI ----------------
 kpis = get_kpis(df)
 
+api_kpis = requests.get(f"{API_URL}/analytics/kpis").json()
+
 total_students = kpis["total_students"]
 avg_score = kpis["avg_score"]
 top_score = kpis["top_score"]
@@ -178,6 +182,12 @@ c1.metric("👨‍🎓 Total Students", total_students)
 c2.metric("📈 Average Score", avg_score)
 c3.metric("🏆 Top Score", top_score)
 c4.metric("⚠️ At Risk", at_risk)
+
+st.info(
+    f"🌐 Live Backend API Connected | "
+    f"Students: {api_kpis['total_students']} | "
+    f"Avg: {api_kpis['avg_score']}"
+)
 
 st.success(
     f"🏆 Top Performer: {topper['STUDENT_NAME']} | "
