@@ -25,7 +25,7 @@ from core.placement_ai import add_placement_prediction
 from core.model_evaluation import build_evaluation_dataframe
 from core.genai_advisor import generate_student_advisor_report
 from core.tenant_auth import tenant_login
-from core.role_access import aply_role_college_filter
+from core.role_access import apply_role_college_filter
 from core.student_auth import student_login
 from core.student_portal import get_student_record
 
@@ -60,7 +60,7 @@ if st.session_state.user_info is None:
 
 # ---------------- LOGOUT ----------------
 if st.sidebar.button("🚪 Logout"):
-    st.session_state.logged_in = False
+    st.session_state.user_info = None
     st.rerun()
 
 # ---------------- CUSTOM CSS ----------------
@@ -111,60 +111,12 @@ if uploaded_file:
     except ValueError as e:
         st.error(str(e))
         st.stop()
-
-if student_mode:
-    st.subheader("👨‍🎓 Student Self-Service Portal")
-
-    student_user = st.text_input("Student Username")
-    student_pass = st.text_input(
-        "Student Password",
-        type="password"
-    )
-
-    if st.button("Student Login"):
-        if student_login(student_user, student_pass):
-            student_data = get_student_record(df, student_user)
-
-            if student_data is None:
-                st.warning("Student record not found.")
-            else:
-                st.success("Student login successful")
-
-                st.metric(
-                    "📈 Current Score",
-                    student_data["TOTAL_SCORE"]
-                )
-
-                st.metric(
-                    "🎯 Placement Probability",
-                    round(
-                        student_data["PLACEMENT_PROBABILITY"],
-                        2
-                    )
-                )
-
-                st.metric(
-                    "📈 Next Semester Forecast",
-                    round(
-                        student_data["NEXT_SEM_PREDICTION"],
-                        2
-                    )
-                )
-
-                st.markdown("### 🧠 AI Mentor Advice")
-                st.info(student_data["AI_INTERVENTION"])
-        else:
-            st.error("Invalid student login")
-
-    # ------------ MULTY COLLEGE FILTER --------------
-    df = apply_role_college_filter(
-        df,
-        st.session_state.user_info
-    )
-
-    if df.empty:
-        st.warning("No data available for your college access.")
-        st.stop()
+ # ------------ MULTY COLLEGE FILTER --------------
+try:
+     df = apply_role_college_filter(
+         df,
+         st.session_state.user_info
+     )
 
     # ---------------- FILTERS ----------------
     st.sidebar.header("🎛 Filters")
@@ -358,6 +310,53 @@ if student_mode:
     advisor_report = generate_student_advisor_report(student_row)
 
     st.markdown(advisor_report)
+
+    # ---------------- STUDENT PORTAL ----------------
+    if student_mode:
+        st.subheader("👨‍🎓 Student Self-Service Portal")
+
+       student_user = st.text_input("Student Username")
+       student_pass = st.text_input(
+           "Student Password",
+           type="password"
+       )
+
+       if st.button("Student Login"):
+           if student_login(student_user, student_pass):
+               student_data = get_student_record(df, student_user)
+
+               if student_data is None:
+                   st.warning("Student record not found.")
+               else:
+                   st.success("Student login successful")
+
+                   s1, s2, s3 = st.columns(3)
+
+                   s1.metric(
+                       "📈 Current Score",
+                       student_data["TOTAL_SCORE"]
+                   )
+
+                   s2.metric(
+                       "🎯 Placement Probability",
+                       round(
+                           student_data["PLACEMENT_PROBABILITY"],
+                           2
+                       )
+                   )
+
+                   s3.metric(
+                       "📈 Next Semester Forecast",
+                       round(
+                           student_data["NEXT_SEM_PREDICTION"],
+                           2
+                       )
+                   )
+
+                   st.markdown("### 🧠 AI Mentor Advice")
+                   st.info(student_data["AI_INTERVENTION"])
+           else:
+               st.error("Invalid student login")
 
     # ---------------- PDF ----------------
     pdf_buffer = generate_pdf_report(
