@@ -20,6 +20,7 @@ from core.filters import (
 )
 from core.predictive_model import add_ai_dropout_prediction
 from core.intervention_engine import add_intervention_recommendations
+from core.forecasting import add_next_semester_forecast
 
 # ---------------- PAGE CONFIG ----------------
 st.set_page_config(
@@ -130,6 +131,7 @@ if uploaded_file:
     df = add_student_clusters(df)
     df = add_ai_dropout_prediction(df)
     df = add_intervention_recommendations(df)
+    df = add_next_semester_forecast(df)
 
     kpis = get_kpis(df)
 
@@ -204,6 +206,7 @@ if uploaded_file:
     )
     st.plotly_chart(risk_fig, use_container_width=True)
 
+    # ------------ INTERVENTION ENGINE ------------
     st.subheader("🎯 Personalized AI Intervention Engine")
 
     st.dataframe(
@@ -213,6 +216,30 @@ if uploaded_file:
                "TOTAL_SCORE",
                "AI_DROPOUT_RISK",
                "AI_INTERVENTION"
+            ]
+        ],
+        use_container_width=True
+    )
+
+    # --------------- SEMESTER FORECASTING --------------
+    st.subheader("📈 Next Semester Forecasting AI")
+
+    forecast_fig = px.scatter(
+        df,
+        x="TOTAL_SCORE",
+        y="NEXT_SEM_PREDICTION",
+        hover_data=["STUDENT_NAME"],
+        title="Current Score vs Next Semester Forecast"
+    )
+    st.plotly_chart(forecast_fig, use_container_width=True)
+
+    # -------------- FORECAST TABLE ------------
+    st.dataframe(
+        df[
+            [ 
+                "STUDENT_NAME",
+                "TOTAL_SCORE",
+                "NEXT_SEM_PREDICTION"
             ]
         ],
         use_container_width=True
