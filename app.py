@@ -213,276 +213,265 @@ fig_compare = px.bar(
     y="Score",
     title=f"{student_row['STUDENT_NAME']} Benchmark Comparison"
 )
- st.plotly_chart(fig_compare, use_container_width=True)
+st.plotly_chart(fig_compare, use_container_width=True)
 
-    # ---------------- DATASET ----------------
-    st.subheader("📄 Student Dataset")
-    st.dataframe(df, use_container_width=True)
+# ---------------- DATASET ----------------
+st.subheader("📄 Student Dataset")
+st.dataframe(df, use_container_width=True)
 
-    # ---------------- CLUSTER CHART ----------------
-    cluster_fig = px.scatter(
-        df,
-        x="GENERAL_SCORE",
-        y="DOMAIN_SCORE",
-        color="CLUSTER",
-        size="TOTAL_SCORE",
-        hover_data=["STUDENT_NAME", "GRADE"],
-        title="AI Cluster Segmentation"
-    )
-    st.plotly_chart(cluster_fig, use_container_width=True)
+# ---------------- CLUSTER CHART ----------------
+cluster_fig = px.scatter(
+    df,
+    x="GENERAL_SCORE",
+    y="DOMAIN_SCORE",
+    color="CLUSTER",
+    size="TOTAL_SCORE",
+    hover_data=["STUDENT_NAME", "GRADE"],
+    title="AI Cluster Segmentation"
+)
+st.plotly_chart(cluster_fig, use_container_width=True)
     
-    # ---------------- DROPOUT CHART --------------
-    st.subheader("🤖 AI Dropout Prediction")
+# ---------------- DROPOUT CHART --------------
+st.subheader("🤖 AI Dropout Prediction")
 
-    risk_fig = px.histogram(
-        df,
-        x="AI_DROPOUT_RISK",
-        nbins=20,
-        title="AI Dropout Risk Probability Distribution"
+risk_fig = px.histogram(
+    df,
+    x="AI_DROPOUT_RISK",
+    nbins=20,
+    title="AI Dropout Risk Probability Distribution"
+)
+st.plotly_chart(risk_fig, use_container_width=True)
+
+# ------------ INTERVENTION ENGINE ------------
+st.subheader("🎯 Personalized AI Intervention Engine")
+
+st.dataframe(
+    df[
+        [
+            "STUDENT_NAME",
+            "TOTAL_SCORE",
+            "AI_DROPOUT_RISK",
+            "AI_INTERVENTION"
+        ]
+    ],
+    use_container_width=True
+)
+
+# --------------- SEMESTER FORECASTING --------------
+st.subheader("📈 Next Semester Forecasting AI")
+
+forecast_fig = px.scatter(
+    df,
+    x="TOTAL_SCORE",
+    y="NEXT_SEM_PREDICTION",
+    hover_data=["STUDENT_NAME"],
+    title="Current Score vs Next Semester Forecast"
+)
+st.plotly_chart(forecast_fig, use_container_width=True)
+
+# -------------- FORECAST TABLE ------------
+st.dataframe(
+    df[
+        [ 
+            "STUDENT_NAME",
+            "TOTAL_SCORE",
+            "NEXT_SEM_PREDICTION"
+        ]
+    ],
+    use_container_width=True
+)
+# ----------- PLACEMENT AI ------------
+st.subheader("🎓 Placement Prediction AI")
+
+placement_fig = px.histogram(
+    df,
+    x="PLACEMENT_PROBABILITY",
+    nbins=20,
+    title="Placement Probability Distribution"
+)
+st.plotly_chart(placement_fig, use_container_width=True)
+
+st.dataframe(
+    df[
+        [
+            "STUDENT_NAME",
+            "PLACEMENT_PROBABILITY",
+            "PLACEMENT_AI_STATUS"
+        ]
+    ],
+    use_container_width=True
+)
+
+# ---------------- MODEL EVALUATION ----------------
+st.subheader("📊 AI Model Evaluation Dashboard")
+
+eval_df = build_evaluation_dataframe(df)
+
+st.dataframe(eval_df, use_container_width=True)
+
+eval_chart = px.bar(
+    eval_df,
+    x="METRIC",
+    y="VALUE",
+    color="MODEL",
+    barmode="group",
+    title="AI Model Performance Metrics"
+)
+
+st.plotly_chart(eval_chart, use_container_width=True)
+
+# ------------- GENAI ADVISOR -------------
+st.subheader("🧠 GenAI Academic Advisor")
+
+advisor_report = generate_student_advisor_report(student_row)
+
+st.markdown(advisor_report)
+
+# ---------------- STUDENT PORTAL ----------------
+if student_mode:
+    st.subheader("👨‍🎓 Student Self-Service Portal")
+
+    student_user = st.text_input("Student Username")
+    student_pass = st.text_input(
+        "Student Password",
+        type="password"
     )
-    st.plotly_chart(risk_fig, use_container_width=True)
 
-    # ------------ INTERVENTION ENGINE ------------
-    st.subheader("🎯 Personalized AI Intervention Engine")
+    if st.button("Student Login"):
+        if student_login(student_user, student_pass):
+            student_data = get_student_record(df, student_user)
 
-    st.dataframe(
-        df[
-            [
-               "STUDENT_NAME",
-               "TOTAL_SCORE",
-               "AI_DROPOUT_RISK",
-               "AI_INTERVENTION"
-            ]
-        ],
-        use_container_width=True
-    )
+            if student_data is None:
+                st.warning("Student record not found.")
+            else:
+                st.success("Student login successful")
 
-    # --------------- SEMESTER FORECASTING --------------
-    st.subheader("📈 Next Semester Forecasting AI")
+                s1, s2, s3 = st.columns(3)
 
-    forecast_fig = px.scatter(
-        df,
-        x="TOTAL_SCORE",
-        y="NEXT_SEM_PREDICTION",
-        hover_data=["STUDENT_NAME"],
-        title="Current Score vs Next Semester Forecast"
-    )
-    st.plotly_chart(forecast_fig, use_container_width=True)
-
-    # -------------- FORECAST TABLE ------------
-    st.dataframe(
-        df[
-            [ 
-                "STUDENT_NAME",
-                "TOTAL_SCORE",
-                "NEXT_SEM_PREDICTION"
-            ]
-        ],
-        use_container_width=True
-    )
-    # ----------- PLACEMENT AI ------------
-    st.subheader("🎓 Placement Prediction AI")
-
-    placement_fig = px.histogram(
-        df,
-        x="PLACEMENT_PROBABILITY",
-        nbins=20,
-        title="Placement Probability Distribution"
-    )
-    st.plotly_chart(placement_fig, use_container_width=True)
-
-    st.dataframe(
-        df[
-            [
-               "STUDENT_NAME",
-               "PLACEMENT_PROBABILITY",
-               "PLACEMENT_AI_STATUS"
-            ]
-         ],
-         use_container_width=True
-    )
-
-    # ---------------- MODEL EVALUATION ----------------
-    st.subheader("📊 AI Model Evaluation Dashboard")
-
-    eval_df = build_evaluation_dataframe(df)
-
-    st.dataframe(eval_df, use_container_width=True)
-
-    eval_chart = px.bar(
-        eval_df,
-        x="METRIC",
-        y="VALUE",
-        color="MODEL",
-        barmode="group",
-        title="AI Model Performance Metrics"
-    )
-
-    st.plotly_chart(eval_chart, use_container_width=True)
-
-    # ------------- GENAI ADVISOR -------------
-    st.subheader("🧠 GenAI Academic Advisor")
-
-    advisor_report = generate_student_advisor_report(student_row)
-
-    st.markdown(advisor_report)
-
-   # ---------------- STUDENT PORTAL ----------------
-   if student_mode:
-       st.subheader("👨‍🎓 Student Self-Service Portal")
-
-       student_user = st.text_input("Student Username")
-       student_pass = st.text_input(
-           "Student Password",
-           type="password"
-       )
-
-       if st.button("Student Login"):
-           if student_login(student_user, student_pass):
-               student_data = get_student_record(df, student_user)
-
-               if student_data is None:
-                   st.warning("Student record not found.")
-               else:
-                   st.success("Student login successful")
-
-                   s1, s2, s3 = st.columns(3)
-
-                   s1.metric(
-                       "📈 Current Score",
-                       student_data["TOTAL_SCORE"]
-                   )
-
-                   s2.metric(
-                       "🎯 Placement Probability",
-                       round(
-                           student_data["PLACEMENT_PROBABILITY"],
-                           2
-                       )
-                   )
-
-                   s3.metric(
-                       "📈 Next Semester Forecast",
-                       round(
-                           student_data["NEXT_SEM_PREDICTION"],
-                           2
-                       )
-                   )
-
-                   st.markdown("### 🧠 AI Mentor Advice")
-                   st.info(student_data["AI_INTERVENTION"])
-           else:
-               st.error("Invalid student login")
-
-    # ---------------- PARENT PORTAL ----------------
-    if parent_mode:
-        st.subheader("👨‍👩‍👧 Parent Progress Portal")
-
-        parent_user = st.text_input("Parent Username")
-        parent_pass = st.text_input(
-            "Parent Password",
-            type="password"
-        )
-
-        if st.button("Parent Login"):
-            if parent_login(parent_user, parent_pass):
-                student_data = get_parent_student_record(
-                    df,
-                    parent_user
+                s1.metric(
+                    "📈 Current Score",
+                    student_data["TOTAL_SCORE"]
                 )
 
-                if student_data is None:
-                    st.warning("Student record not found.")
-                else:
-                    st.success("Parent login successful")
+                s2.metric(
+                    "🎯 Placement Probability",
+                    round(student_data["PLACEMENT_PROBABILITY"], 2)
+                )
 
-                    p1, p2, p3 = st.columns(3)
+                s3.metric(
+                    "📈 Next Semester Forecast",
+                    round(student_data["NEXT_SEM_PREDICTION"], 2)
+                )
 
-                    p1.metric(
-                        "📈 Current Score",
-                        student_data["TOTAL_SCORE"]
-                    )
-
-                    p2.metric(
-                        "🚨 Dropout Risk",
-                        round(
-                            student_data["AI_DROPOUT_RISK"],
-                            2
-                        )
-                    )
-
-                    p3.metric(
-                        "🎯 Placement Probability",
-                        round(
-                            student_data["PLACEMENT_PROBABILITY"],
-                            2
-                        )
-                    )
-
-                    st.markdown("### 📈 Semester Forecast")
-                    st.info(
-                        f"Expected next semester score: "
-                        f"{round(student_data['NEXT_SEM_PREDICTION'], 2)}"
-                    )
-
-                    st.markdown("### 🧠 Parent Advisory")
-                    st.warning(student_data["AI_INTERVENTION"])
-            else:
-                st.error("Invalid parent login")
-
-    # ---------------- REAL ML PIPELINE ----------------
-    st.subheader("🌲 Real ML Training Pipeline")
-
-    if st.button("🚀 Train Real ML Models"):
-        dropout_acc = train_dropout_model(df)
-        placement_acc = train_placement_model(df)
-
-        st.success(
-            f"Dropout Model Accuracy: {dropout_acc} | "
-            f"Placement Model Accuracy: {placement_acc}"
-        )
-
-        df = predict_dropout_probability(df)
-        df = predict_placement_probability(df)
-
-        st.dataframe(
-            df[
-                [
-                    "STUDENT_NAME",
-                    "REAL_ML_DROPOUT_PROB",
-                    "REAL_ML_PLACEMENT_PROB"
-                ]
-            ],
-            use_container_width=True
-        )
-    # ---------------- PDF ----------------
-    pdf_buffer = generate_pdf_report(
-        df,
-        total_students,
-        avg_score,
-        top_score,
-        at_risk
-    )
-
-    st.download_button(
-        label="📄 Download Executive PDF",
-        data=pdf_buffer,
-        file_name="executive_student_report.pdf",
-        mime="application/pdf"
-    )
-
-    # ---------------- EMAIL ----------------
-    st.markdown("### 📧 Email Executive Report")
-    email = st.text_input("Enter recipient email")
-
-    if st.button("📤 Send PDF Report"):
-        if email:
-            send_email_report(
-                email,
-                pdf_buffer,
-                st.secrets["EMAIL"],
-                st.secrets["APP_PASSWORD"]
-            )
-            st.success("PDF sent successfully")
+                st.markdown("### 🧠 AI Mentor Advice")
+                st.info(student_data["AI_INTERVENTION"])
         else:
-            st.warning("Please enter recipient email")
+            st.error("Invalid student login")
+
+# ---------------- PARENT PORTAL ----------------
+if parent_mode:
+    st.subheader("👨‍👩‍👧 Parent Progress Portal")
+
+    parent_user = st.text_input("Parent Username")
+    parent_pass = st.text_input(
+        "Parent Password",
+        type="password"
+    )
+
+    if st.button("Parent Login"):
+        if parent_login(parent_user, parent_pass):
+            student_data = get_parent_student_record(
+                df,
+                parent_user
+            )
+
+            if student_data is None:
+                st.warning("Student record not found.")
+            else:
+                st.success("Parent login successful")
+
+                p1, p2, p3 = st.columns(3)
+
+                p1.metric(
+                    "📈 Current Score",
+                    student_data["TOTAL_SCORE"]
+                )
+
+                p2.metric(
+                    "🚨 Dropout Risk",
+                    round(student_data["AI_DROPOUT_RISK"], 2)
+                )
+
+                p3.metric(
+                    "🎯 Placement Probability",
+                    round(student_data["PLACEMENT_PROBABILITY"], 2)
+                )
+
+                st.markdown("### 📈 Semester Forecast")
+                st.info(
+                    f"Expected next semester score: "
+                    f"{round(student_data['NEXT_SEM_PREDICTION'], 2)}"
+                )
+
+                st.markdown("### 🧠 Parent Advisory")
+                st.warning(student_data["AI_INTERVENTION"])
+        else:
+            st.error("Invalid parent login")
+
+# ---------------- REAL ML PIPELINE ----------------
+st.subheader("🌲 Real ML Training Pipeline")
+
+if st.button("🚀 Train Real ML Models"):
+    dropout_acc = train_dropout_model(df)
+    placement_acc = train_placement_model(df)
+
+    st.success(
+        f"Dropout Model Accuracy: {dropout_acc} | "
+        f"Placement Model Accuracy: {placement_acc}"
+    )
+
+    df = predict_dropout_probability(df)
+    df = predict_placement_probability(df)
+
+    st.dataframe(
+        df[
+            [
+                "STUDENT_NAME",
+                "REAL_ML_DROPOUT_PROB",
+                "REAL_ML_PLACEMENT_PROB"
+            ]
+        ],
+        use_container_width=True
+    )
+
+# ---------------- PDF ----------------
+pdf_buffer = generate_pdf_report(
+    df,
+    total_students,
+    avg_score,
+    top_score,
+    at_risk
+)
+
+st.download_button(
+    label="📄 Download Executive PDF",
+    data=pdf_buffer,
+    file_name="executive_student_report.pdf",
+    mime="application/pdf"
+)
+
+# ---------------- EMAIL ----------------
+st.markdown("### 📧 Email Executive Report")
+email = st.text_input("Enter recipient email")
+
+if st.button("📤 Send PDF Report"):
+    if email:
+        send_email_report(
+            email,
+            pdf_buffer,
+            st.secrets["EMAIL"],
+            st.secrets["APP_PASSWORD"]
+        )
+        st.success("PDF sent successfully")
+    else:
+        st.warning("Please enter recipient email")
