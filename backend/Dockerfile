@@ -1,9 +1,13 @@
-FROM python:3.11
+FROM python:3.11-slim
 
 WORKDIR /app
 
-COPY . .
+COPY backend/requirements.txt .
 
-RUN pip install fastapi uvicorn sqlalchemy psycopg2-binary
+RUN pip install --no-cache-dir -r requirements.txt
+
+COPY backend/ .
+
+EXPOSE 8000
 
 CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
