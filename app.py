@@ -18,6 +18,7 @@ from core.filters import (
     apply_academic_filters,
     validate_filtered_data
 )
+from core.predictive_model import add_ai_dropout_prediction
 
 # ---------------- PAGE CONFIG ----------------
 st.set_page_config(
@@ -126,6 +127,7 @@ if uploaded_file:
     # ---------------- ANALYTICS ----------------
     df = enrich_student_data(df)
     df = add_student_clusters(df)
+    df = add_ai_dropout_prediction(df)
 
     kpis = get_kpis(df)
 
@@ -188,6 +190,16 @@ if uploaded_file:
         title="AI Cluster Segmentation"
     )
     st.plotly_chart(cluster_fig, use_container_width=True)
+
+    st.subheader("🤖 AI Dropout Prediction")
+
+    risk_fig = px.histogram(
+        df,
+        x="AI_DROPOUT_RISK",
+        nbins=20,
+        title="AI Dropout Risk Probability Distribution"
+    )
+    st.plotly_chart(risk_fig, use_container_width=True)
 
     # ---------------- PDF ----------------
     pdf_buffer = generate_pdf_report(
