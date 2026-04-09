@@ -16,6 +16,7 @@ def plans():
         "enterprise": "custom pricing"
     }
 
+
 @router.get("/analytics/kpis")
 def get_kpis():
     return {
