@@ -11,8 +11,10 @@ from core.analytics import (
 )
 from core.reporting import (
     generate_pdf_report,
-    send_email_report
+    send_email_report,
+    generate_parent_pdf
 )
+from core.notifications import generate_parent_alert
 from core.clustering import add_student_clusters
 from core.filters import (
     apply_academic_filters,
@@ -222,6 +224,21 @@ student_name = st.selectbox(
 )
 
 student_row = df[df["STUDENT_NAME"] == student_name].iloc[0]
+
+from core.reporting import generate_parent_pdf
+from core.notifications import generate_parent_alert
+
+parent_pdf = generate_parent_pdf(student_row)
+
+st.download_button(
+    "📄 Download Parent Progress Report",
+    data=parent_pdf,
+    file_name=f"{student_name}_progress_report.pdf",
+    mime="application/pdf"
+)
+
+st.subheader("📲 Parent Alert Preview")
+st.warning(generate_parent_alert(student_row))
 
 university_avg = round(
     df[df["UNIVERSITY"] == student_row["UNIVERSITY"]]["TOTAL_SCORE"].mean(),
