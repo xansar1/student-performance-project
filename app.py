@@ -189,6 +189,21 @@ c2.metric("📈 Average Score", avg_score)
 c3.metric("🏆 Top Score", top_score)
 c4.metric("⚠️ At Risk", at_risk)
 
+st.subheader("🚨 Students Needing Immediate Attention")
+
+attention_df = df[
+    df["AI_DROPOUT_RISK"] > 0.7
+][
+    [
+        "STUDENT_NAME",
+        "PROGRAM",
+        "TOTAL_SCORE",
+        "AI_DROPOUT_RISK"
+    ]
+]
+
+st.dataframe(attention_df, use_container_width=True)
+
 st.info(
     f"🌐 Live Backend API Connected | "
     f"Students: {api_kpis['total_students']} | "
