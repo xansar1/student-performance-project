@@ -15,11 +15,11 @@ reporting**.
 
 ### 🌐 Frontend Dashboard
 
-👉 [https://your-streamlit-link.streamlit.app](https://ai-academic-analytics-dashboard-5ujujechqk42wgnsfukjsn.streamlit.app/)
+👉 https://ai-academic-analytics-dashboard-5ujujechqk42wgnsfukjsn.streamlit.app/
 
 ### ⚡ Backend API Docs
 
-👉 [https://your-render-backend-url.onrender.com/docs](https://ai-academic-backend.onrender.com/health)
+👉 https://ai-academic-backend.onrender.com/docs
 
 ------------------------------------------------------------------------
 
