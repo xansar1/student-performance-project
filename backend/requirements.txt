@@ -6,7 +6,7 @@ pydantic
 streamlit
 pandas
 numpy
-request 
+requests 
 reportlab
 scikit-learn
 python-multipart
