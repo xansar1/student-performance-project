@@ -3,3 +3,8 @@ uvicorn
 sqlalchemy
 psycopg2-binary
 pydantic
+streamlit
+pandas
+numpy
+request reportlab
+scikit-learn
