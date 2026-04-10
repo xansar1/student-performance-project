@@ -118,3 +118,38 @@ def send_email_report(
         contents="Attached is the executive performance report.",
         attachments=temp_pdf_path
     )
+
+def generate_parent_pdf(student_row):
+    from io import BytesIO
+    from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
+    from reportlab.lib.styles import getSampleStyleSheet
+
+    buffer = BytesIO()
+    doc = SimpleDocTemplate(buffer)
+
+    styles = getSampleStyleSheet()
+    story = []
+
+    story.append(Paragraph("Student Progress Report", styles["Title"]))
+    story.append(Spacer(1, 12))
+
+    story.append(Paragraph(
+        f"Student: {student_row['STUDENT_NAME']}",
+        styles["Normal"]
+    ))
+    story.append(Paragraph(
+        f"Current Score: {student_row['TOTAL_SCORE']}",
+        styles["Normal"]
+    ))
+    story.append(Paragraph(
+        f"Risk Level: {round(student_row['AI_DROPOUT_RISK'],2)}",
+        styles["Normal"]
+    ))
+    story.append(Paragraph(
+        f"Advice: {student_row['AI_INTERVENTION']}",
+        styles["Normal"]
+    ))
+
+    doc.build(story)
+    buffer.seek(0)
+    return buffer
