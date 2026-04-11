@@ -46,6 +46,9 @@ def generate_sample_csv(institution_type, academic_level=None):
         if academic_level == "10":
             sample_df = pd.DataFrame({
                 "STUDENT_NAME": ["Ameen", "Fathima"],
+                "CLASS": ["10", "10"],
+                "SECTION": ["A", "B"],
+                "MEDIUM": ["English", "Malayalam"],
                 "ENGLISH": [78, 88],
                 "MALAYALAM": [80, 90],
                 "HINDI": [70, 85],
@@ -59,6 +62,9 @@ def generate_sample_csv(institution_type, academic_level=None):
         else:
             sample_df = pd.DataFrame({
                 "STUDENT_NAME": ["Ameen", "Fathima"],
+                "CLASS": ["8", "9"],
+                "SECTION": ["A", "B"],
+                "MEDIUM": ["English", "Malayalam"],
                 "ENGLISH": [78, 88],
                 "MALAYALAM": [80, 90],
                 "HINDI": [70, 85],
@@ -69,19 +75,49 @@ def generate_sample_csv(institution_type, academic_level=None):
             })
 
     elif institution_type == "Higher Secondary":
-        sample_df = pd.DataFrame({
-            "STUDENT_NAME": ["Ameen", "Fathima"],
-            "ENGLISH": [78, 88],
-            "PHYSICS": [85, 91],
-            "CHEMISTRY": [83, 89],
-            "MATHS": [92, 95],
-            "BIOLOGY": [84, 90],
-            "COMPUTER": [90, 94]
-        })
+        stream = academic_level if academic_level else "Science"
+
+        if stream == "Science":
+            sample_df = pd.DataFrame({
+                "STUDENT_NAME": ["Ameen", "Fathima"],
+                "STREAM": ["Science", "Science"],
+                "BATCH": ["2025", "2025"],
+                "ENGLISH": [78, 88],
+                "PHYSICS": [85, 91],
+                "CHEMISTRY": [83, 89],
+                "MATHS": [92, 95],
+                "BIOLOGY": [84, 90],
+                "COMPUTER": [90, 94]
+            })
+        elif stream == "Commerce":
+            sample_df = pd.DataFrame({
+                "STUDENT_NAME": ["Ameen", "Fathima"],
+                "STREAM": ["Commerce", "Commerce"],
+                "BATCH": ["2025", "2025"],
+                "ENGLISH": [78, 88],
+                "ACCOUNTANCY": [85, 91],
+                "BUSINESS_STUDIES": [83, 89],
+                "ECONOMICS": [92, 95],
+                "COMPUTER_APPLICATION": [84, 90]
+            })
+        else:
+            sample_df = pd.DataFrame({
+                "STUDENT_NAME": ["Ameen", "Fathima"],
+                "STREAM": ["Humanities", "Humanities"],
+                "BATCH": ["2025", "2025"],
+                "ENGLISH": [78, 88],
+                "HISTORY": [85, 91],
+                "POLITICAL_SCIENCE": [83, 89],
+                "SOCIOLOGY": [92, 95],
+                "ECONOMICS": [84, 90]
+            })
 
     elif institution_type == "College":
         sample_df = pd.DataFrame({
             "STUDENT_NAME": ["Ameen", "Fathima"],
+            "INSTITUTION": ["ABC College", "ABC College"],
+            "DEPARTMENT": ["BSc CS", "BSc CS"],
+            "SEMESTER": ["S5", "S5"],
             "SUBJECT_1": [78, 88],
             "SUBJECT_2": [85, 91],
             "SUBJECT_3": [83, 89],
@@ -91,13 +127,14 @@ def generate_sample_csv(institution_type, academic_level=None):
     else:
         sample_df = pd.DataFrame({
             "STUDENT_NAME": ["Ameen", "Fathima"],
+            "COACHING_CENTRE": ["Focus Academy", "Focus Academy"],
+            "BATCH": ["NEET Morning", "NEET Evening"],
             "TEST_1": [78, 88],
             "TEST_2": [85, 91],
             "TEST_3": [83, 89]
         })
 
     return sample_df
-
 # ---------------- PAGE CONFIG ----------------
 st.set_page_config(
     page_title="AI Academic Performance Analytics",
