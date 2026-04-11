@@ -440,46 +440,50 @@ metadata_cols = {
 }
 
 subject_cols = [
-    col for col in df.columns
+    col for col in df.select_dtypes(include="number").columns
     if col not in metadata_cols
 ]
 
-subject_avg = (
-    df[subject_cols]
-    .mean()
-    .sort_values(ascending=False)
-    .reset_index()
-)
+if len(subject_cols) > 0:
+    subject_avg = (
+        df[subject_cols]
+        .mean()
+        .sort_values(ascending=False)
+        .reset_index()
+    )
 
-subject_avg.columns = ["Subject", "Average Score"]
+    subject_avg.columns = ["Subject", "Average Score"]
 
-st.dataframe(subject_avg, use_container_width=True)
+    st.dataframe(subject_avg, use_container_width=True)
 
-fig_subjects = px.bar(
-    subject_avg,
-    x="Subject",
-    y="Average Score",
-    title="Subject-wise Average Performance"
-)
-st.plotly_chart(fig_subjects, use_container_width=True)
+    fig_subjects = px.bar(
+        subject_avg,
+        x="Subject",
+        y="Average Score",
+        title="Subject-wise Average Performance"
+    )
+    st.plotly_chart(fig_subjects, use_container_width=True)
+
+else:
+    st.warning("No numeric subject columns found.")
+    subject_avg = pd.DataFrame(
+        columns=["Subject", "Average Score"]
+    )
 
 # ---------------- WEAKEST SUBJECT AI ----------------
 st.subheader("🚨 Weakest Subject Intelligence")
 
-weakest_subject = subject_avg.sort_values(
-    by="Average Score"
-).iloc[0]
+if not subject_avg.empty:
+    weakest_subject = subject_avg.sort_values(
+        by="Average Score"
+    ).iloc[0]
 
-st.error(
-    f"⚠️ Weakest Subject: {weakest_subject['Subject']} "
-    f"(Avg Score: {round(weakest_subject['Average Score'], 2)})"
-)
-
-st.info(
-    f"🎯 Recommended Action: Conduct remedial sessions, "
-    f"extra worksheets, and parent follow-up for "
-    f"{weakest_subject['Subject']}."
-)
+    st.error(
+        f"⚠️ Weakest Subject: {weakest_subject['Subject']} "
+        f"(Avg Score: {round(weakest_subject['Average Score'], 2)})"
+    )
+else:
+    st.info("Weakest subject analysis unavailable.")
 
 # ---------------- BATCH / DEPARTMENT COMPARISON ----------------
 st.subheader("🏫 Batch / Department Comparison")
