@@ -208,6 +208,8 @@ sample_df = generate_sample_csv(
     academic_level
 )
 
+student_users, parent_users = generate_dynamic_credentials(sample_df)
+
 # ---------------- LOGIN ----------------
 if (
     st.session_state.user_info is None
