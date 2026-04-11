@@ -292,6 +292,58 @@ except ValueError as e:
     st.error(str(e))
     st.stop()
 
+# ---------------- ROLE BASED DASHBOARD ROUTING ----------------
+if st.session_state.get("student_user"):
+    st.subheader("👨‍🎓 Student Self-Service Portal")
+
+    student_data = get_student_record(
+        df,
+        st.session_state.student_user
+    )
+
+    if student_data is not None:
+        s1, s2, s3 = st.columns(3)
+        s1.metric("📈 Current Score", student_data["TOTAL_SCORE"])
+        s2.metric(
+            "🎯 Placement Probability",
+            round(student_data["PLACEMENT_PROBABILITY"], 2)
+        )
+        s3.metric(
+            "📈 Next Semester Forecast",
+            round(student_data["NEXT_SEM_PREDICTION"], 2)
+        )
+        st.info(student_data["AI_INTERVENTION"])
+    else:
+        st.warning("Student record not found.")
+
+    st.stop()
+
+
+if st.session_state.get("parent_user"):
+    st.subheader("👨‍👩‍👧 Parent Progress Portal")
+
+    student_data = get_parent_student_record(
+        df,
+        st.session_state.parent_user
+    )
+
+    if student_data is not None:
+        p1, p2, p3 = st.columns(3)
+        p1.metric("📈 Current Score", student_data["TOTAL_SCORE"])
+        p2.metric(
+            "🚨 Dropout Risk",
+            round(student_data["AI_DROPOUT_RISK"], 2)
+        )
+        p3.metric(
+            "🎯 Placement Probability",
+            round(student_data["PLACEMENT_PROBABILITY"], 2)
+        )
+        st.warning(student_data["AI_INTERVENTION"])
+    else:
+        st.warning("Student record not found.")
+
+    st.stop()
+
 # ---------------- TENANT ISOLATION ----------------
 if st.session_state.user_info:
     df = apply_role_college_filter(
@@ -848,54 +900,6 @@ st.dataframe(eval_df, use_container_width=True)
 st.subheader("🧠 GenAI Academic Advisor")
 advisor_report = generate_student_advisor_report(student_row)
 st.markdown(advisor_report)
-
-# ---------------- STUDENT PORTAL ----------------
-if st.session_state.get("student_user"):
-    st.subheader("👨‍🎓 Student Self-Service Portal")
-
-    student_data = get_student_record(
-        df,
-        st.session_state.student_user
-    )
-
-    if student_data is not None:
-        s1, s2, s3 = st.columns(3)
-        s1.metric("📈 Current Score", student_data["TOTAL_SCORE"])
-        s2.metric(
-            "🎯 Placement Probability",
-            round(student_data["PLACEMENT_PROBABILITY"], 2)
-        )
-        s3.metric(
-            "📈 Next Semester Forecast",
-            round(student_data["NEXT_SEM_PREDICTION"], 2)
-        )
-        st.info(student_data["AI_INTERVENTION"])
-    else:
-        st.warning("Student record not found.")
-
-# ---------------- PARENT PORTAL ----------------
-if st.session_state.get("parent_user"):
-    st.subheader("👨‍👩‍👧 Parent Progress Portal")
-
-    student_data = get_parent_student_record(
-        df,
-        st.session_state.parent_user
-    )
-
-    if student_data is not None:
-        p1, p2, p3 = st.columns(3)
-        p1.metric("📈 Current Score", student_data["TOTAL_SCORE"])
-        p2.metric(
-            "🚨 Dropout Risk",
-            round(student_data["AI_DROPOUT_RISK"], 2)
-        )
-        p3.metric(
-            "🎯 Placement Probability",
-            round(student_data["PLACEMENT_PROBABILITY"], 2)
-        )
-        st.warning(student_data["AI_INTERVENTION"])
-    else:
-        st.warning("Student record not found.")
 
 # ---------------- REAL ML ----------------
 st.subheader("🌲 Real ML Training Pipeline")
