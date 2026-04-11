@@ -606,6 +606,37 @@ sales_df["Recommended Program"] = sales_df.apply(
 
 st.dataframe(sales_df, use_container_width=True)
 
+# ---------------- AI COUNSELOR FOLLOW-UP DASHBOARD ----------------
+st.subheader("📞 Counselor Follow-up Priority")
+
+followup_df = sales_df.copy()
+
+def get_followup_priority(row):
+    if row["AI_DROPOUT_RISK"] > 0.8:
+        return "Urgent Parent Call"
+    elif row["Recommended Program"] in [
+        "Placement Bootcamp",
+        "Advanced Excellence Batch"
+    ]:
+        return "Upsell Counseling"
+    else:
+        return "Routine Academic Follow-up"
+
+followup_df["Counselor Action"] = followup_df.apply(
+    get_followup_priority,
+    axis=1
+)
+
+st.dataframe(
+    followup_df[
+        [
+            "STUDENT_NAME",
+            "Recommended Program",
+            "Counselor Action"
+        ]
+    ],
+    use_container_width=True
+)
 
 # ---------------- CLUSTER ----------------
 cluster_fig = px.scatter(
