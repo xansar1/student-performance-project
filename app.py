@@ -299,6 +299,8 @@ sample_df = generate_sample_csv(
     academic_level
 )
 
+student_users, parent_users = generate_dynamic_credentials(df)
+
 st.download_button(
     "📥 Download Sample Format",
     data=sample_df.to_csv(index=False).encode("utf-8"),
@@ -322,7 +324,6 @@ try:
         department=department
     )
 
-    student_users, parent_users = generate_dynamic_credentials(df)
 except ValueError as e:
     st.error(str(e))
     st.stop()
