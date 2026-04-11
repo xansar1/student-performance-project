@@ -116,22 +116,22 @@ def generate_sample_csv(institution_type, academic_level=None):
         sample_df = pd.DataFrame({
             "STUDENT_NAME": ["Ameen", "Fathima"],
             "INSTITUTION": ["ABC College", "ABC College"],
-            "DEPARTMENT": ["BSc CS", "BSc CS"],
+            "DEPARTMENT": ["BSc Computer Science", "BSc Computer Science"],
             "SEMESTER": ["S5", "S5"],
-            "SUBJECT_1": [78, 88],
-            "SUBJECT_2": [85, 91],
-            "SUBJECT_3": [83, 89],
-            "SUBJECT_4": [92, 95]
+            "PYTHON_PROGRAMMING": [78, 88],
+            "DBMS": [85, 91],
+            "STATISTICS": [83, 89],
+            "MACHINE_LEARNING": [92, 95]
         })
 
     else:
         sample_df = pd.DataFrame({
             "STUDENT_NAME": ["Ameen", "Fathima"],
             "COACHING_CENTRE": ["Focus Academy", "Focus Academy"],
-            "BATCH": ["NEET Morning", "NEET Evening"],
-            "TEST_1": [78, 88],
-            "TEST_2": [85, 91],
-            "TEST_3": [83, 89]
+            "BATCH": ["NEET Morning", "JEE Evening"],
+            "PHYSICS_TEST": [78, 88],
+            "CHEMISTRY_TEST": [85, 91],
+            "BIOLOGY_TEST": [83, 89]
         })
 
     return sample_df
