@@ -29,9 +29,7 @@ from core.model_evaluation import build_evaluation_dataframe
 from core.genai_advisor import generate_student_advisor_report
 from core.tenant_auth import tenant_login
 from core.role_access import apply_role_college_filter
-from core.student_auth import student_login
 from core.student_portal import get_student_record
-from core.parent_auth import parent_login
 from core.parent_portal import get_parent_student_record
 from core.ml_training import (
     train_dropout_model,
@@ -210,8 +208,6 @@ sample_df = generate_sample_csv(
     academic_level
 )
 
-student_users, parent_users = generate_dynamic_credentials(sample_df)
-
 # ---------------- LOGIN ----------------
 if (
     st.session_state.user_info is None
@@ -330,6 +326,27 @@ except ValueError as e:
     st.error(str(e))
     st.stop()
 
+student_users, parent_users = generate_dynamic_credentials(sample_df)
+
+# ---------------- TENANT ISOLATION ----------------
+if st.session_state.user_info:
+    df = apply_role_college_filter(
+        df,
+        st.session_state.user_info
+    )
+
+if df.empty:
+    st.warning("No data available for your college access.")
+    st.stop()
+
+# ---------------- AI ENRICHMENTS ----------------
+df = enrich_student_data(df)
+df = add_student_clusters(df)
+df = add_ai_dropout_prediction(df)
+df = add_intervention_recommendations(df)
+df = add_next_semester_forecast(df)
+df = add_placement_prediction(df)
+
 # ---------------- ROLE BASED DASHBOARD ROUTING ----------------
 if st.session_state.get("student_user"):
     st.subheader("👨‍🎓 Student Self-Service Portal")
@@ -382,17 +399,6 @@ if st.session_state.get("parent_user"):
 
     st.stop()
 
-# ---------------- TENANT ISOLATION ----------------
-if st.session_state.user_info:
-    df = apply_role_college_filter(
-        df,
-        st.session_state.user_info
-    )
-
-if df.empty:
-    st.warning("No data available for your college access.")
-    st.stop()
-
 # ---------------- FILTERS ----------------
 st.sidebar.header("🎛 Filters")
 
@@ -409,8 +415,21 @@ else:
     primary_label = "Coaching Centre"
     secondary_label = "Batch"
 
-filter_col_1 = "UNIVERSITY" if "UNIVERSITY" in df.columns else df.columns[1]
-filter_col_2 = "PROGRAM" if "PROGRAM" in df.columns else df.columns[2]
+if institution_type == "School":
+    filter_col_1 = "CLASS"
+    filter_col_2 = "SECTION"
+
+elif institution_type == "Higher Secondary":
+    filter_col_1 = "STREAM"
+    filter_col_2 = "BATCH"
+
+elif institution_type == "College":
+    filter_col_1 = "INSTITUTION"
+    filter_col_2 = "DEPARTMENT"
+
+else:
+    filter_col_1 = "COACHING_CENTRE"
+    filter_col_2 = "BATCH"
 
 selected_university = st.sidebar.multiselect(
     f"Select {primary_label}",
@@ -434,14 +453,6 @@ try:
 except ValueError as e:
     st.warning(str(e))
     st.stop()
-
-# ---------------- AI ENRICHMENTS ----------------
-df = enrich_student_data(df)
-df = add_student_clusters(df)
-df = add_ai_dropout_prediction(df)
-df = add_intervention_recommendations(df)
-df = add_next_semester_forecast(df)
-df = add_placement_prediction(df)
 
 # ---------------- KPI ----------------
 kpis = get_kpis(df)
