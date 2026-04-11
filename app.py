@@ -67,7 +67,7 @@ def generate_sample_csv(institution_type, academic_level=None):
     if institution_type == "School":
         if academic_level == "10":
             sample_df = pd.DataFrame({
-                "ADMISSION_NO": ["ST101", "ST102"]
+                "ADMISSION_NO": ["ST101", "ST102"],
                 "STUDENT_NAME": ["Ameen", "Fathima"],
                 "CLASS": ["10", "10"],
                 "SECTION": ["A", "B"],
@@ -84,7 +84,7 @@ def generate_sample_csv(institution_type, academic_level=None):
             })
         else:
             sample_df = pd.DataFrame({
-                "ADMISSION_NO": ["ST103", "ST104"]
+                "ADMISSION_NO": ["ST103", "ST104"],
                 "STUDENT_NAME": ["Ameen", "Fathima"],
                 "CLASS": ["8", "9"],
                 "SECTION": ["A", "B"],
@@ -103,7 +103,7 @@ def generate_sample_csv(institution_type, academic_level=None):
 
         if stream == "Science":
             sample_df = pd.DataFrame({
-                "ADMISSION_NO": ["HF101", "HF102"]
+                "ADMISSION_NO": ["HF101", "HF102"],
                 "STUDENT_NAME": ["Ameen", "Fathima"],
                 "STREAM": ["Science", "Science"],
                 "BATCH": ["2025", "2025"],
@@ -116,7 +116,7 @@ def generate_sample_csv(institution_type, academic_level=None):
             })
         elif stream == "Commerce":
             sample_df = pd.DataFrame({
-                "ADMISSION_NO": ["HF103", "HF104"]
+                "ADMISSION_NO": ["HF103", "HF104"],
                 "STUDENT_NAME": ["Ameen", "Fathima"],
                 "STREAM": ["Commerce", "Commerce"],
                 "BATCH": ["2025", "2025"],
@@ -128,7 +128,7 @@ def generate_sample_csv(institution_type, academic_level=None):
             })
         else:
             sample_df = pd.DataFrame({
-                "ADMISSION_NO": ["HF105", "HF106"]
+                "ADMISSION_NO": ["HF105", "HF106"],
                 "STUDENT_NAME": ["Ameen", "Fathima"],
                 "STREAM": ["Humanities", "Humanities"],
                 "BATCH": ["2025", "2025"],
@@ -141,7 +141,7 @@ def generate_sample_csv(institution_type, academic_level=None):
 
     elif institution_type == "College":
         sample_df = pd.DataFrame({
-            "ADMISSION_NO": ["COL101", "COL102"]
+            "ADMISSION_NO": ["COL101", "COL102"],
             "STUDENT_NAME": ["Ameen", "Fathima"],
             "INSTITUTION": ["ABC College", "ABC College"],
             "DEPARTMENT": ["BSc Computer Science", "BSc Computer Science"],
@@ -154,7 +154,7 @@ def generate_sample_csv(institution_type, academic_level=None):
 
     else:
         sample_df = pd.DataFrame({
-            "ADMISSION_NO": ["CO101", "CO102"]
+            "ADMISSION_NO": ["CO101", "CO102"],
             "STUDENT_NAME": ["Ameen", "Fathima"],
             "COACHING_CENTRE": ["Focus Academy", "Focus Academy"],
             "BATCH": ["NEET Morning", "JEE Evening"],
