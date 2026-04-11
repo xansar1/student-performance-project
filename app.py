@@ -147,7 +147,18 @@ API_URL = "https://fantastic-space-garbanzo-97w9g7wgx77p3pvww-8000.app.github.de
 if "user_info" not in st.session_state:
     st.session_state.user_info = None
 
-if st.session_state.user_info is None:
+if "student_user" not in st.session_state:
+    st.session_state.student_user = None
+
+if "parent_user" not in st.session_state:
+    st.session_state.parent_user = None
+
+
+if (
+    st.session_state.user_info is None
+    and st.session_state.student_user is None
+    and st.session_state.parent_user is None
+):
     st.title("🔐 Multi College SaaS Login")
 
     login_role = st.selectbox(
