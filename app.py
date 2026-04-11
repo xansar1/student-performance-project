@@ -638,6 +638,35 @@ st.dataframe(
     use_container_width=True
 )
 
+# ---------------- REVENUE FORECAST DASHBOARD ----------------
+st.subheader("📊 Revenue Forecast Intelligence")
+
+base_fee = 3000
+premium_fee = 8000
+
+expected_renewals = len(
+    df[df["AI_DROPOUT_RISK"] <= 0.6]
+)
+
+expected_premium = len(
+    sales_df[
+        sales_df["Recommended Program"].isin([
+            "Placement Bootcamp",
+            "Advanced Excellence Batch"
+        ])
+    ]
+)
+
+forecast_revenue = (
+    expected_renewals * base_fee
+) + (
+    expected_premium * premium_fee
+)
+
+st.metric("💰 Expected Next Month Revenue", f"₹{forecast_revenue:,}")
+st.metric("📈 Expected Renewals", expected_renewals)
+st.metric("🎯 Premium Upsells", expected_premium)
+
 # ---------------- CLUSTER ----------------
 cluster_fig = px.scatter(
     df,
