@@ -557,6 +557,56 @@ st.error(
     f"⚠️ Estimated High Revenue Risk Students: {high_risk_count}"
 )
 
+# ---------------- PREMIUM UPSELL INTELLIGENCE ----------------
+st.subheader("🎯 Premium Upsell Opportunities")
+
+upsell_students = df[
+    (df["TOTAL_SCORE"] > df["TOTAL_SCORE"].mean()) &
+    (df["PLACEMENT_PROBABILITY"] > 0.7)
+][
+    [
+        "STUDENT_NAME",
+        "TOTAL_SCORE",
+        "PLACEMENT_PROBABILITY"
+    ]
+]
+
+st.dataframe(upsell_students, use_container_width=True)
+
+st.success(
+    f"💰 Premium Program Upsell Candidates: {len(upsell_students)}"
+)
+
+# ---------------- AI SALES RECOMMENDATION ENGINE ----------------
+st.subheader("🤖 AI Course Sales Recommendations")
+
+def recommend_course(row):
+    if row["AI_DROPOUT_RISK"] > 0.7:
+        return "Remedial Support Program"
+    elif row["PLACEMENT_PROBABILITY"] > 0.8:
+        return "Placement Bootcamp"
+    elif row["TOTAL_SCORE"] > df["TOTAL_SCORE"].mean():
+        return "Advanced Excellence Batch"
+    else:
+        return "Standard Progress Program"
+
+sales_df = df[
+    [
+        "STUDENT_NAME",
+        "TOTAL_SCORE",
+        "AI_DROPOUT_RISK",
+        "PLACEMENT_PROBABILITY"
+    ]
+].copy()
+
+sales_df["Recommended Program"] = sales_df.apply(
+    recommend_course,
+    axis=1
+)
+
+st.dataframe(sales_df, use_container_width=True)
+
+
 # ---------------- CLUSTER ----------------
 cluster_fig = px.scatter(
     df,
