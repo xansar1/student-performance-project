@@ -1,63 +1,79 @@
 import pandas as pd
-import numpy as np
 
 
-REQUIRED_COLS = [
-    "STUDENT_NAME",
-    "UNIVERSITY",
-    "PROGRAM",
-    "GENERAL_SCORE",
-    "DOMAIN_SCORE",
-    "TOTAL_SCORE"
-]
-
-
-RENAME_MAP = {
-    "NAME_OF_THE_STUDENT": "STUDENT_NAME",
-    "PROGRAM_NAME": "PROGRAM",
-    "GENERAL_MANAGEMENT_SCORE_(OUT_OF_50)": "GENERAL_SCORE",
-    "DOMAIN_SPECIFIC_SCORE_(OUT_50)": "DOMAIN_SCORE",
-    "TOTAL_SCORE_(OUT_OF_100)": "TOTAL_SCORE"
-}
-
-
-def load_and_clean_data(uploaded_file):
-    """
-    Load CSV, normalize columns, validate schema,
-    fill optional defaults, and return cleaned dataframe.
-    """
+def load_and_clean_data(uploaded_file, institution_type="College"):
     df = pd.read_csv(uploaded_file)
 
-    # normalize column names
-    df.columns = [
-        col.strip().replace(" ", "_").upper()
-        for col in df.columns
-    ]
+    df.columns = [col.strip().upper() for col in df.columns]
 
-    # rename known alternative columns
-    df.rename(columns=RENAME_MAP, inplace=True)
+    if institution_type == "College":
+        required = [
+            "STUDENT_NAME",
+            "UNIVERSITY",
+            "PROGRAM",
+            "TOTAL_SCORE"
+        ]
 
-    # validate required columns
-    missing = [col for col in REQUIRED_COLS if col not in df.columns]
-    if missing:
-        raise ValueError(f"Missing columns: {missing}")
+        for col in required:
+            if col not in df.columns:
+                raise ValueError(f"Missing required column: {col}")
 
-    # fill optional fields
-    optional_defaults = {
-        "EMAIL": "N/A",
-        "GENDER": "N/A",
-        "SPECIALISATION": "N/A"
-    }
+        # universal score mapping
+        if "GENERAL_SCORE" not in df.columns:
+            df["GENERAL_SCORE"] = df["TOTAL_SCORE"] * 0.5
+        if "DOMAIN_SCORE" not in df.columns:
+            df["DOMAIN_SCORE"] = df["TOTAL_SCORE"] * 0.5
 
-    for col, default_value in optional_defaults.items():
-        if col not in df.columns:
-            df[col] = default_value
+    elif institution_type == "School":
+        required = [
+            "STUDENT_NAME",
+            "CLASS",
+            "SECTION",
+            "ENGLISH",
+            "MATHS",
+            "SCIENCE"
+        ]
 
-    # semester fallback
-    if "SEMESTER" not in df.columns:
-        df["SEMESTER"] = np.random.choice(
-            ["Sem 1", "Sem 2", "Sem 3", "Sem 4"],
-            size=len(df)
+        for col in required:
+            if col not in df.columns:
+                raise ValueError(f"Missing required column: {col}")
+
+        df["TOTAL_SCORE"] = (
+            df["ENGLISH"] +
+            df["MATHS"] +
+            df["SCIENCE"]
         )
+
+        df["GENERAL_SCORE"] = df["ENGLISH"]
+        df["DOMAIN_SCORE"] = df["MATHS"]
+
+        df["UNIVERSITY"] = "School"
+        df["PROGRAM"] = df["CLASS"].astype(str)
+
+    elif institution_type == "Coaching Centre":
+        required = [
+            "STUDENT_NAME",
+            "BATCH",
+            "TEST_NAME",
+            "PHYSICS",
+            "CHEMISTRY",
+            "MATHS_BIO"
+        ]
+
+        for col in required:
+            if col not in df.columns:
+                raise ValueError(f"Missing required column: {col}")
+
+        df["TOTAL_SCORE"] = (
+            df["PHYSICS"] +
+            df["CHEMISTRY"] +
+            df["MATHS_BIO"]
+        )
+
+        df["GENERAL_SCORE"] = df["PHYSICS"]
+        df["DOMAIN_SCORE"] = df["CHEMISTRY"]
+
+        df["UNIVERSITY"] = "Coaching Centre"
+        df["PROGRAM"] = df["BATCH"]
 
     return df
