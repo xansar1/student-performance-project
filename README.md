@@ -20,6 +20,7 @@ reporting**.
 ### ⚡ Backend API Docs
 
 👉 https://ai-academic-backend.onrender.com/docs
+- 📊 Executive PDF sample report screenshots included in demo
 
 ------------------------------------------------------------------------
 
