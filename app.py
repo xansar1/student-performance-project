@@ -150,21 +150,42 @@ if "user_info" not in st.session_state:
 if st.session_state.user_info is None:
     st.title("🔐 Multi College SaaS Login")
 
+    login_role = st.selectbox(
+        "Login As",
+        ["Institution Admin", "Student", "Parent"]
+    )
+
     username = st.text_input("👤 Username")
     password = st.text_input("🔑 Password", type="password")
 
     if st.button("Login"):
-        user_info = tenant_login(username, password)
+        if login_role == "Institution Admin":
+            user_info = tenant_login(username, password)
 
-        if user_info:
-            st.session_state.user_info = user_info
-            st.success("Login successful")
-            st.rerun()
-        else:
-            st.error("Invalid credentials")
+            if user_info:
+                st.session_state.user_info = user_info
+                st.success("Admin login successful")
+                st.rerun()
+            else:
+                st.error("Invalid admin credentials")
+
+        elif login_role == "Student":
+            if student_login(username, password):
+                st.session_state.student_user = username
+                st.success("Student login successful")
+                st.rerun()
+            else:
+                st.error("Invalid student credentials")
+
+        elif login_role == "Parent":
+            if parent_login(username, password):
+                st.session_state.parent_user = username
+                st.success("Parent login successful")
+                st.rerun()
+            else:
+                st.error("Invalid parent credentials")
 
     st.stop()
-
 # ---------------- LOGOUT ----------------
 if st.sidebar.button("🚪 Logout"):
     st.session_state.user_info = None
