@@ -137,28 +137,6 @@ if st.sidebar.button("🚪 Logout"):
 st.title("🎓 AI Academic Performance Analytics Dashboard")
 st.caption("Premium SaaS-style student performance intelligence system")
 
-# ---------------- CSV GUIDE ----------------
-st.subheader("📘 CSV Format Guide")
-
-sample_df = pd.DataFrame({
-    "STUDENT_NAME": ["Aarav", "Meera"],
-    "UNIVERSITY": ["MG University", "KTU"],
-    "PROGRAM": ["BTech AI", "MBA"],
-    "SPECIALISATION": ["Machine Learning", "Finance"],
-    "EMAIL": ["aarav@example.com", "meera@example.com"],
-    "GENDER": ["Male", "Female"],
-    "GENERAL_SCORE": [45, 38],
-    "DOMAIN_SCORE": [42, 40],
-    "TOTAL_SCORE": [87, 78]
-})
-
-st.download_button(
-    "📥 Download Sample CSV Format",
-    data=sample_df.to_csv(index=False).encode("utf-8"),
-    file_name="sample_format.csv",
-    mime="text/csv"
-)
-
 # ---------------- SIDEBAR TOGGLES ----------------
 st.sidebar.markdown("## 👨‍🎓 Student Portal")
 student_mode = st.sidebar.toggle("Enable Student Login")
@@ -212,7 +190,9 @@ if not uploaded_file:
 try:
     df = load_and_clean_data(
         uploaded_file,
-        institution_type
+        institution_type,
+        academic_level,
+        department=department
     )
 except ValueError as e:
     st.error(str(e))
@@ -231,16 +211,32 @@ if df.empty:
 # ---------------- FILTERS ----------------
 st.sidebar.header("🎛 Filters")
 
+if institution_type == "School":
+    primary_label = "Class"
+    secondary_label = "Section / Stream"
+elif institution_type == "Higher Secondary":
+    primary_label = "Stream"
+    secondary_label = "Subject Group"
+elif institution_type == "College":
+    primary_label = "Institution"
+    secondary_label = "Department"
+else:
+    primary_label = "Coaching Centre"
+    secondary_label = "Batch"
+
+filter_col_1 = "UNIVERSITY" if "UNIVERSITY" in df.columns else df.columns[1]
+filter_col_2 = "PROGRAM" if "PROGRAM" in df.columns else df.columns[2]
+
 selected_university = st.sidebar.multiselect(
-    "Select University",
-    options=df["UNIVERSITY"].unique(),
-    default=df["UNIVERSITY"].unique()
+    f"Select {primary_label}",
+    options=df[filter_col_1].unique(),
+    default=df[filter_col_1].unique()
 )
 
 selected_program = st.sidebar.multiselect(
-    "Select Program",
-    options=df["PROGRAM"].unique(),
-    default=df["PROGRAM"].unique()
+    f"Select {secondary_label}",
+    options=df[filter_col_2].unique(),
+    default=df[filter_col_2].unique()
 )
 
 try:
@@ -280,6 +276,12 @@ at_risk = kpis["at_risk"]
 
 topper = get_topper(df)
 
+topper_org = (
+    topper["UNIVERSITY"]
+    if "UNIVERSITY" in topper.index
+    else topper[filter_col_1]
+)
+
 c1, c2, c3, c4 = st.columns(4)
 c1.metric("👨‍🎓 Total Students", total_students)
 c2.metric("📈 Average Score", avg_score)
@@ -288,12 +290,14 @@ c4.metric("⚠️ At Risk", at_risk)
 
 st.subheader("🚨 Students Needing Immediate Attention")
 
+program_col = "PROGRAM" if "PROGRAM" in df.columns else filter_col_2
+
 attention_df = df[
     df["AI_DROPOUT_RISK"] > 0.7
 ][
     [
         "STUDENT_NAME",
-        "PROGRAM",
+        program_col,
         "TOTAL_SCORE",
         "AI_DROPOUT_RISK"
     ]
@@ -307,9 +311,11 @@ st.info(
     f"Avg: {api_kpis['avg_score']}"
 )
 
+topper_org = topper["UNIVERSITY"] if "UNIVERSITY" in topper else "Institution"
+
 st.success(
     f"🏆 Top Performer: {topper['STUDENT_NAME']} | "
-    f"{topper['UNIVERSITY']} | Score: {topper['TOTAL_SCORE']}"
+    f"{topper_org} | Score: {topper['TOTAL_SCORE']}"
 )
 
 # ---------------- STUDENT SEARCH ----------------
@@ -332,8 +338,10 @@ st.download_button(
 st.subheader("📲 Parent Alert Preview")
 st.warning(generate_parent_alert(student_row))
 
+benchmark_col = filter_col_1
+
 university_avg = round(
-    df[df["UNIVERSITY"] == student_row["UNIVERSITY"]]["TOTAL_SCORE"].mean(),
+    df[df[benchmark_col] == student_row[benchmark_col]]["TOTAL_SCORE"].mean(),
     2
 )
 
