@@ -176,6 +176,9 @@ if "student_user" not in st.session_state:
 
 if "parent_user" not in st.session_state:
     st.session_state.parent_user = None
+
+if "main_df" not in st.session_state:
+    st.session_state.main_df = None
     
 API_URL = "https://fantastic-space-garbanzo-97w9g7wgx77p3pvww-8000.app.github.dev"
 
@@ -208,7 +211,15 @@ sample_df = generate_sample_csv(
     academic_level
 )
 
-student_users, parent_users = generate_dynamic_credentials(sample_df)
+credential_df = (
+    st.session_state.main_df
+    if st.session_state.main_df is not None
+    else sample_df
+)
+
+student_users, parent_users = generate_dynamic_credentials(
+    credential_df
+)
 
 # ---------------- LOGIN ----------------
 if (
@@ -308,24 +319,28 @@ st.download_button(
     mime="text/csv"
 )
     
-# ---------------- FILE UPLOAD ----------------
+# ---------------- FILE UPLOAD + LOAD DATA ----------------
 uploaded_file = st.file_uploader("📁 Upload CSV File", type=["csv"])
 
-if not uploaded_file:
+if uploaded_file is not None:
+    try:
+        df = load_and_clean_data(
+            uploaded_file,
+            institution_type,
+            academic_level,
+            department=department
+        )
+        st.session_state.main_df = df
+
+    except ValueError as e:
+        st.error(str(e))
+        st.stop()
+
+elif st.session_state.main_df is not None:
+    df = st.session_state.main_df
+
+else:
     st.info("📁 Upload CSV file to access analytics dashboard")
-    st.stop()
-
-# ---------------- LOAD DATA ----------------
-try:
-    df = load_and_clean_data(
-        uploaded_file,
-        institution_type,
-        academic_level,
-        department=department
-    )
-
-except ValueError as e:
-    st.error(str(e))
     st.stop()
 
 student_users, parent_users = generate_dynamic_credentials(df)
