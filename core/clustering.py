@@ -1,22 +1,32 @@
-from sklearn.preprocessing import StandardScaler
 from sklearn.cluster import KMeans
+from sklearn.preprocessing import StandardScaler
 
+def add_student_clusters(df):
+    feature_cols = [
+        "GENERAL_SCORE",
+        "DOMAIN_SCORE",
+        "TOTAL_SCORE"
+    ]
 
-CLUSTER_FEATURES = [
-    "GENERAL_SCORE",
-    "DOMAIN_SCORE",
-    "TOTAL_SCORE"
-]
+    available_cols = [
+        col for col in feature_cols
+        if col in df.columns
+    ]
 
+    if len(available_cols) < 2:
+        df["CLUSTER"] = 0
+        return df
 
-def add_student_clusters(df, n_clusters=3):
-    """
-    Add ML-based performance clusters to student dataframe.
-    """
-    df = df.copy()
+    # not enough students for clustering
+    if len(df) < 2:
+        df["CLUSTER"] = 0
+        return df
 
-    features = df[CLUSTER_FEATURES]
-    scaled = StandardScaler().fit_transform(features)
+    scaler = StandardScaler()
+    scaled = scaler.fit_transform(df[available_cols])
+
+    # dynamic safe clusters
+    n_clusters = min(3, len(df))
 
     model = KMeans(
         n_clusters=n_clusters,
