@@ -222,12 +222,6 @@ if logo_url:
     st.image(logo_url, width=120)
 
 # ---------------- SIDEBAR TOGGLES ----------------
-st.sidebar.markdown("## 👨‍🎓 Student Portal")
-student_mode = st.sidebar.toggle("Enable Student Login")
-
-st.sidebar.markdown("## 👨‍👩‍👧 Parent Portal")
-parent_mode = st.sidebar.toggle("Enable Parent Login")
-
 institution_type = st.sidebar.selectbox(
     "🏢 Institution Type",
     ["School", "Higher Secondary", "College", "Coaching Centre"]
