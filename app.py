@@ -170,9 +170,24 @@ if st.sidebar.button("🚪 Logout"):
     st.session_state.user_info = None
     st.rerun()
 
-# ---------------- PAGE HEADER ----------------
-st.title("🎓 AI Academic Performance Analytics Dashboard")
-st.caption("Premium SaaS-style student performance intelligence system")
+# ---------------- WHITE LABEL BRANDING ----------------
+institution_brand = st.sidebar.text_input(
+    "🏷 Institution Brand Name",
+    "Your Institution"
+)
+
+logo_url = st.sidebar.text_input(
+    "🖼 Logo URL (optional)",
+    ""
+)
+
+st.title(f"🎓 {institution_brand} Academic Intelligence Dashboard")
+st.caption(
+    f"Premium AI-powered analytics platform for {institution_brand}"
+)
+
+if logo_url:
+    st.image(logo_url, width=120)
 
 # ---------------- SIDEBAR TOGGLES ----------------
 st.sidebar.markdown("## 👨‍🎓 Student Portal")
@@ -666,6 +681,29 @@ forecast_revenue = (
 st.metric("💰 Expected Next Month Revenue", f"₹{forecast_revenue:,}")
 st.metric("📈 Expected Renewals", expected_renewals)
 st.metric("🎯 Premium Upsells", expected_premium)
+
+# ---------------- ROI PROPOSAL GENERATOR ----------------
+st.subheader("🧾 ROI Proposal Summary")
+
+monthly_subscription = 5000
+roi_gain = forecast_revenue - monthly_subscription
+
+proposal_text = f"""
+Institution Revenue Forecast: ₹{forecast_revenue:,}
+Expected Premium Upsells: {expected_premium}
+Expected Renewals: {expected_renewals}
+
+Suggested SaaS Subscription: ₹{monthly_subscription:,}/month
+
+Estimated ROI Gain After Subscription:
+₹{roi_gain:,} per month
+"""
+
+st.text_area(
+    "Institution ROI Proposal",
+    value=proposal_text,
+    height=220
+)
 
 # ---------------- CLUSTER ----------------
 cluster_fig = px.scatter(
