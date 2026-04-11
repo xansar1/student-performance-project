@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 import requests
 import plotly.express as px
+import hashlib
 
 from core.data_loader import load_and_clean_data
 from core.analytics import (
@@ -41,10 +42,32 @@ from core.ml_inference import (
     predict_placement_probability
 )
 
+def generate_dynamic_credentials(df):
+    student_users = {}
+    parent_users = {}
+
+    for _, row in df.iterrows():
+        admission_no = str(row["ADMISSION_NO"]).strip().upper()
+
+        student_password = f"{admission_no}@123"
+        parent_username = f"P_{admission_no}"
+        parent_password = f"{admission_no}@parent"
+
+        student_users[admission_no] = hashlib.sha256(
+            student_password.encode()
+        ).hexdigest()
+
+        parent_users[parent_username] = hashlib.sha256(
+            parent_password.encode()
+        ).hexdigest()
+
+    return student_users, parent_users
+    
 def generate_sample_csv(institution_type, academic_level=None):
     if institution_type == "School":
         if academic_level == "10":
             sample_df = pd.DataFrame({
+                "ADMISSION_NO": ["ST101", "ST102"]
                 "STUDENT_NAME": ["Ameen", "Fathima"],
                 "CLASS": ["10", "10"],
                 "SECTION": ["A", "B"],
@@ -61,6 +84,7 @@ def generate_sample_csv(institution_type, academic_level=None):
             })
         else:
             sample_df = pd.DataFrame({
+                "ADMISSION_NO": ["ST103", "ST104"]
                 "STUDENT_NAME": ["Ameen", "Fathima"],
                 "CLASS": ["8", "9"],
                 "SECTION": ["A", "B"],
@@ -79,6 +103,7 @@ def generate_sample_csv(institution_type, academic_level=None):
 
         if stream == "Science":
             sample_df = pd.DataFrame({
+                "ADMISSION_NO": ["HF101", "HF102"]
                 "STUDENT_NAME": ["Ameen", "Fathima"],
                 "STREAM": ["Science", "Science"],
                 "BATCH": ["2025", "2025"],
@@ -91,6 +116,7 @@ def generate_sample_csv(institution_type, academic_level=None):
             })
         elif stream == "Commerce":
             sample_df = pd.DataFrame({
+                "ADMISSION_NO": ["HF103", "HF104"]
                 "STUDENT_NAME": ["Ameen", "Fathima"],
                 "STREAM": ["Commerce", "Commerce"],
                 "BATCH": ["2025", "2025"],
@@ -102,6 +128,7 @@ def generate_sample_csv(institution_type, academic_level=None):
             })
         else:
             sample_df = pd.DataFrame({
+                "ADMISSION_NO": ["HF105", "HF106"]
                 "STUDENT_NAME": ["Ameen", "Fathima"],
                 "STREAM": ["Humanities", "Humanities"],
                 "BATCH": ["2025", "2025"],
@@ -114,6 +141,7 @@ def generate_sample_csv(institution_type, academic_level=None):
 
     elif institution_type == "College":
         sample_df = pd.DataFrame({
+            "ADMISSION_NO": ["COL101", "COL102"]
             "STUDENT_NAME": ["Ameen", "Fathima"],
             "INSTITUTION": ["ABC College", "ABC College"],
             "DEPARTMENT": ["BSc Computer Science", "BSc Computer Science"],
@@ -126,6 +154,7 @@ def generate_sample_csv(institution_type, academic_level=None):
 
     else:
         sample_df = pd.DataFrame({
+            "ADMISSION_NO": ["CO101", "CO102"]
             "STUDENT_NAME": ["Ameen", "Fathima"],
             "COACHING_CENTRE": ["Focus Academy", "Focus Academy"],
             "BATCH": ["NEET Morning", "JEE Evening"],
@@ -181,21 +210,25 @@ if (
                 st.error("Invalid admin credentials")
 
         elif login_role == "Student":
-            if student_login(username, password):
-                st.session_state.student_user = username
+            hashed = hashlib.sha256(password.encode()).hexdigest()
+
+            if student_users.get(username.upper()) == hashed:
+                st.session_state.student_user = username.upper()
                 st.success("Student login successful")
                 st.rerun()
             else:
                 st.error("Invalid student credentials")
 
         elif login_role == "Parent":
-            if parent_login(username, password):
-                st.session_state.parent_user = username
+            hashed = hashlib.sha256(password.encode()).hexdigest()
+            
+            if parent_users.get(username.upper()) == hashed:
+                st.session_state.parent_user = username.upper()
                 st.success("Parent login successful")
                 st.rerun()
             else:
                 st.error("Invalid parent credentials")
-
+                
     st.stop()
 # ---------------- LOGOUT ----------------
 if st.sidebar.button("🚪 Logout"):
@@ -288,6 +321,8 @@ try:
         academic_level,
         department=department
     )
+
+    student_users, parent_users = generate_dynamic_credentials(df)
 except ValueError as e:
     st.error(str(e))
     st.stop()
