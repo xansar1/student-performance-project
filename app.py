@@ -399,6 +399,164 @@ st.plotly_chart(fig_compare, use_container_width=True)
 st.subheader("📄 Student Dataset")
 st.dataframe(df, use_container_width=True)
 
+st.subheader("📚 Subject-wise Performance Insights")
+
+metadata_cols = {
+    "STUDENT_NAME",
+    "CLASS",
+    "SECTION",
+    "MEDIUM",
+    "STREAM",
+    "BATCH",
+    "INSTITUTION",
+    "DEPARTMENT",
+    "SEMESTER",
+    "COACHING_CENTRE",
+    "UNIVERSITY",
+    "PROGRAM",
+    "TOTAL_SCORE",
+    "GENERAL_SCORE",
+    "DOMAIN_SCORE",
+    "CLUSTER",
+    "AI_DROPOUT_RISK",
+    "AI_INTERVENTION",
+    "NEXT_SEM_PREDICTION",
+    "PLACEMENT_PROBABILITY"
+}
+
+subject_cols = [
+    col for col in df.columns
+    if col not in metadata_cols
+]
+
+subject_avg = (
+    df[subject_cols]
+    .mean()
+    .sort_values(ascending=False)
+    .reset_index()
+)
+
+subject_avg.columns = ["Subject", "Average Score"]
+
+st.dataframe(subject_avg, use_container_width=True)
+
+fig_subjects = px.bar(
+    subject_avg,
+    x="Subject",
+    y="Average Score",
+    title="Subject-wise Average Performance"
+)
+st.plotly_chart(fig_subjects, use_container_width=True)
+
+# ---------------- WEAKEST SUBJECT AI ----------------
+st.subheader("🚨 Weakest Subject Intelligence")
+
+weakest_subject = subject_avg.sort_values(
+    by="Average Score"
+).iloc[0]
+
+st.error(
+    f"⚠️ Weakest Subject: {weakest_subject['Subject']} "
+    f"(Avg Score: {round(weakest_subject['Average Score'], 2)})"
+)
+
+st.info(
+    f"🎯 Recommended Action: Conduct remedial sessions, "
+    f"extra worksheets, and parent follow-up for "
+    f"{weakest_subject['Subject']}."
+)
+
+# ---------------- BATCH / DEPARTMENT COMPARISON ----------------
+st.subheader("🏫 Batch / Department Comparison")
+
+batch_comparison = (
+    df.groupby(filter_col_2)["TOTAL_SCORE"]
+    .mean()
+    .sort_values(ascending=False)
+    .reset_index()
+)
+
+batch_comparison.columns = [secondary_label, "Average Score"]
+
+st.dataframe(batch_comparison, use_container_width=True)
+
+fig_batch = px.bar(
+    batch_comparison,
+    x=secondary_label,
+    y="Average Score",
+    title=f"{secondary_label} Performance Comparison"
+)
+st.plotly_chart(fig_batch, use_container_width=True)
+
+# ---------------- STUDENT GROWTH TREND ----------------
+st.subheader("📈 Student Growth Trend")
+
+if len(subject_cols) >= 3:
+    trend_subjects = subject_cols[:3]
+
+    trend_df = pd.DataFrame({
+        "Assessment": trend_subjects,
+        "Score": [student_row[col] for col in trend_subjects]
+    })
+
+    fig_trend = px.line(
+        trend_df,
+        x="Assessment",
+        y="Score",
+        markers=True,
+        title=f"{student_row['STUDENT_NAME']} Progress Trend"
+    )
+    st.plotly_chart(fig_trend, use_container_width=True)
+else:
+    st.info("Not enough test/subject columns for growth trend.")
+
+# ---------------- PARENT WHATSAPP ALERT TEMPLATE ----------------
+st.subheader("📲 Parent WhatsApp Alert")
+
+alert_message = (
+    f"Dear Parent, {student_row['STUDENT_NAME']} currently has "
+    f"a score of {student_row['TOTAL_SCORE']} with dropout risk "
+    f"probability {round(student_row['AI_DROPOUT_RISK'], 2)}. "
+    f"Recommended support: {student_row['AI_INTERVENTION']}"
+)
+
+st.text_area(
+    "WhatsApp Message Preview",
+    value=alert_message,
+    height=120
+)
+
+# ---------------- REVENUE RISK INTELLIGENCE ----------------
+st.subheader("💸 Revenue Retention Risk")
+
+revenue_risk_students = df[
+    df["AI_DROPOUT_RISK"] > 0.6
+][
+    [
+        "STUDENT_NAME",
+        "TOTAL_SCORE",
+        "AI_DROPOUT_RISK"
+    ]
+].copy()
+
+revenue_risk_students["Retention Risk"] = revenue_risk_students[
+    "AI_DROPOUT_RISK"
+].apply(
+    lambda x: "High" if x > 0.8 else "Medium"
+)
+
+st.dataframe(revenue_risk_students, use_container_width=True)
+
+high_risk_count = len(
+    revenue_risk_students[
+        revenue_risk_students["Retention Risk"] == "High"
+    ]
+)
+
+st.error(
+    f"⚠️ Estimated High Revenue Risk Students: {high_risk_count}"
+)
+
 # ---------------- CLUSTER ----------------
 cluster_fig = px.scatter(
     df,
