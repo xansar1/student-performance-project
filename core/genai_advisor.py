@@ -1,13 +1,18 @@
 def generate_student_advisor_report(student_row):
-    name = student_row["STUDENT_NAME"]
-    score = student_row["TOTAL_SCORE"]
-    grade = student_row["GRADE"]
-    placement = student_row["PLACEMENT_AI_STATUS"]
-    dropout = student_row["AI_DROPOUT_RISK"]
-    intervention = student_row["AI_INTERVENTION"]
-    next_sem = student_row["NEXT_SEM_PREDICTION"]
+    name = student_row.get("STUDENT_NAME", "Student")
+    score = student_row.get("TOTAL_SCORE", 0)
+    grade = student_row.get("GRADE", "N/A")
+    placement = student_row.get(
+        "PLACEMENT_AI_STATUS",
+        "Placement prediction unavailable"
+    )
+    dropout = student_row.get("AI_DROPOUT_RISK", 0)
+    intervention = student_row.get(
+        "AI_INTERVENTION",
+        "General mentoring recommended"
+    )
+    next_sem = student_row.get("NEXT_SEM_PREDICTION", 0)
 
-    # academic tone
     if score >= 85:
         academic_comment = (
             f"{name} is performing at an excellent academic level "
@@ -27,26 +32,22 @@ def generate_student_advisor_report(student_row):
             f"targeted intervention are strongly recommended."
         )
 
-    # placement note
     placement_comment = (
         f"Placement outlook is currently marked as {placement}. "
         f"Recommended focus areas include aptitude, communication, "
         f"projects, and mock interviews."
     )
 
-    # dropout note
     dropout_comment = (
         f"Predicted dropout risk stands at {round(dropout, 2)}. "
         f"Suggested action: {intervention}."
     )
 
-    # future prediction
     future_comment = (
         f"Next semester forecasted score is {round(next_sem, 2)}. "
         f"This should be used for proactive academic planning."
     )
 
-    # final executive narrative
     final_report = (
         f"## 🎓 GenAI Advisor Report for {name}\n\n"
         f"### 📘 Academic Insight\n{academic_comment}\n\n"
