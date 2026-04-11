@@ -441,7 +441,18 @@ metadata_cols = {
 
 subject_cols = [
     col for col in df.select_dtypes(include="number").columns
-    if col not in metadata_cols
+    if col not in {
+        "TOTAL_SCORE",
+        "GENERAL_SCORE",
+        "DOMAIN_SCORE",
+        "AI_DROPOUT_RISK",
+        "DROPOUT_RISK",
+        "PLACEMENT_PROBABILITY",
+        "NEXT_SEM_PREDICTION",
+        "CLUSTER",
+        "REAL_ML_DROPOUT_PROB",
+        "REAL_ML_PLACEMENT_PROB"
+    }
 ]
 
 if len(subject_cols) > 0:
@@ -558,23 +569,29 @@ revenue_risk_students = df[
     ]
 ].copy()
 
-revenue_risk_students["Retention Risk"] = revenue_risk_students[
-    "AI_DROPOUT_RISK"
-].apply(
-    lambda x: "High" if x > 0.8 else "Medium"
-)
+if not revenue_risk_students.empty:
+    revenue_risk_students["Retention Risk"] = (
+        revenue_risk_students["AI_DROPOUT_RISK"]
+        .apply(lambda x: "High" if x > 0.8 else "Medium")
+    )
 
-st.dataframe(revenue_risk_students, use_container_width=True)
+    st.dataframe(
+        revenue_risk_students,
+        use_container_width=True
+    )
 
-high_risk_count = len(
-    revenue_risk_students[
-        revenue_risk_students["Retention Risk"] == "High"
-    ]
-)
+    high_risk_count = len(
+        revenue_risk_students[
+            revenue_risk_students["Retention Risk"] == "High"
+        ]
+    )
 
-st.error(
-    f"⚠️ Estimated High Revenue Risk Students: {high_risk_count}"
-)
+    st.error(
+        f"⚠️ Estimated High Revenue Risk Students: "
+        f"{high_risk_count}"
+    )
+else:
+    st.success("✅ No revenue retention risk students detected.")
 
 # ---------------- PREMIUM UPSELL INTELLIGENCE ----------------
 st.subheader("🎯 Premium Upsell Opportunities")
