@@ -320,9 +320,6 @@ student_name = st.selectbox(
 
 student_row = df[df["STUDENT_NAME"] == student_name].iloc[0]
 
-from core.reporting import generate_parent_pdf
-from core.notifications import generate_parent_alert
-
 parent_pdf = generate_parent_pdf(student_row)
 
 st.download_button(
