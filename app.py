@@ -111,8 +111,27 @@ parent_mode = st.sidebar.toggle("Enable Parent Login")
 
 institution_type = st.sidebar.selectbox(
     "🏢 Institution Type",
-    ["College", "School", "Coaching Centre"]
+    ["School", "Higher Secondary", "College", "Coaching Centre"]
 )
+
+academic_level = None
+department = None
+
+if institution_type == "School":
+    academic_level = st.sidebar.selectbox(
+        "📚 Class",
+        ["1-9", "10"]
+    )
+
+elif institution_type == "Higher Secondary":
+    academic_level = st.sidebar.selectbox(
+        "🎓 Stream",
+        ["Science", "Commerce", "Humanities"]
+    )
+
+elif institution_type == "College":
+    department = st.sidebar.text_input("🏛 Department")
+    
 # ---------------- FILE UPLOAD ----------------
 uploaded_file = st.file_uploader("📁 Upload CSV File", type=["csv"])
 
@@ -122,7 +141,10 @@ if not uploaded_file:
 
 # ---------------- LOAD DATA ----------------
 try:
-    df = load_and_clean_data(uploaded_file)
+    df = load_and_clean_data(
+        uploaded_file,
+        institution_type
+    )
 except ValueError as e:
     st.error(str(e))
     st.stop()
