@@ -170,9 +170,6 @@ st.set_page_config(
     page_icon="🎓",
     layout="wide"
 )
-API_URL = "https://fantastic-space-garbanzo-97w9g7wgx77p3pvww-8000.app.github.dev"
-
-# ---------------- LOGIN ----------------
 if "user_info" not in st.session_state:
     st.session_state.user_info = None
 
@@ -181,8 +178,41 @@ if "student_user" not in st.session_state:
 
 if "parent_user" not in st.session_state:
     st.session_state.parent_user = None
+    
+API_URL = "https://fantastic-space-garbanzo-97w9g7wgx77p3pvww-8000.app.github.dev"
 
+# ---------------- SIDEBAR TOGGLES ----------------
+institution_type = st.sidebar.selectbox(
+    "🏢 Institution Type",
+    ["School", "Higher Secondary", "College", "Coaching Centre"]
+)
 
+academic_level = None
+department = None
+
+if institution_type == "School":
+    academic_level = st.sidebar.selectbox(
+        "📚 Class",
+        ["1-9", "10"]
+    )
+
+elif institution_type == "Higher Secondary":
+    academic_level = st.sidebar.selectbox(
+        "🎓 Stream",
+        ["Science", "Commerce", "Humanities"]
+    )
+
+elif institution_type == "College":
+    department = st.sidebar.text_input("🏛 Department")
+
+sample_df = generate_sample_csv(
+    institution_type,
+    academic_level
+)
+
+student_users, parent_users = generate_dynamic_credentials(sample_df)
+
+# ---------------- LOGIN ----------------
 if (
     st.session_state.user_info is None
     and st.session_state.student_user is None
@@ -230,10 +260,6 @@ if (
                 st.error("Invalid parent credentials")
                 
     st.stop()
-# ---------------- LOGOUT ----------------
-if st.sidebar.button("🚪 Logout"):
-    st.session_state.user_info = None
-    st.rerun()
 
 # ---------------- WHITE LABEL BRANDING ----------------
 institution_brand = st.sidebar.text_input(
@@ -270,36 +296,12 @@ elif st.session_state.get("parent_user"):
 else:
     st.success("🏢 Institution Admin Dashboard")
 
-# ---------------- SIDEBAR TOGGLES ----------------
-institution_type = st.sidebar.selectbox(
-    "🏢 Institution Type",
-    ["School", "Higher Secondary", "College", "Coaching Centre"]
-)
-
-academic_level = None
-department = None
-
-if institution_type == "School":
-    academic_level = st.sidebar.selectbox(
-        "📚 Class",
-        ["1-9", "10"]
-    )
-
-elif institution_type == "Higher Secondary":
-    academic_level = st.sidebar.selectbox(
-        "🎓 Stream",
-        ["Science", "Commerce", "Humanities"]
-    )
-
-elif institution_type == "College":
-    department = st.sidebar.text_input("🏛 Department")
-
-sample_df = generate_sample_csv(
-    institution_type,
-    academic_level
-)
-
-student_users, parent_users = generate_dynamic_credentials(df)
+# ---------------- LOGOUT ----------------
+if st.sidebar.button("🚪 Logout"):
+    st.session_state.user_info = None
+    st.session_state.student_user = None
+    st.session_state.parent_user = None
+    st.rerun()
 
 st.download_button(
     "📥 Download Sample Format",
