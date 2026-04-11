@@ -708,20 +708,21 @@ st.text_area(
 # ---------------- CLUSTER ----------------
 st.subheader("🧩 AI Cluster Segmentation")
 
-x_col = "GENERAL_SCORE" if "GENERAL_SCORE" in df.columns else "TOTAL_SCORE"
-y_col = "DOMAIN_SCORE" if "DOMAIN_SCORE" in df.columns else "TOTAL_SCORE"
+numeric_cols = df.select_dtypes(include="number").columns.tolist()
 
-hover_cols = ["STUDENT_NAME"]
-if "GRADE" in df.columns:
-    hover_cols.append("GRADE")
+preferred_x = "GENERAL_SCORE"
+preferred_y = "DOMAIN_SCORE"
+
+x_col = preferred_x if preferred_x in numeric_cols else numeric_cols[0]
+y_col = preferred_y if preferred_y in numeric_cols else numeric_cols[1]
 
 cluster_fig = px.scatter(
     df,
     x=x_col,
     y=y_col,
     color="CLUSTER",
-    size="TOTAL_SCORE",
-    hover_data=hover_cols,
+    size="TOTAL_SCORE" if "TOTAL_SCORE" in df.columns else None,
+    hover_data=["STUDENT_NAME"],
     title=f"AI Cluster Segmentation ({x_col} vs {y_col})"
 )
 st.plotly_chart(cluster_fig, use_container_width=True)
