@@ -198,6 +198,7 @@ benchmarking
 -   🧠 AI intervention recommendations
 -   ☁️ cloud database integration
 -   👨‍🏫 faculty-level analytics
+-   📄 downloadable PDF reports with advanced visual analytics
 
 ------------------------------------------------------------------------
 
