@@ -283,10 +283,11 @@ except ValueError as e:
     st.stop()
 
 # ---------------- TENANT ISOLATION ----------------
-df = apply_role_college_filter(
-    df,
-    st.session_state.user_info
-)
+if st.session_state.user_info:
+    df = apply_role_college_filter(
+        df,
+        st.session_state.user_info
+    )
 
 if df.empty:
     st.warning("No data available for your college access.")
