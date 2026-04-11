@@ -1,11 +1,10 @@
-def get_student_record(df, username):
-    username = username.strip().lower()
-
-    student_row = df[
-        df["STUDENT_NAME"].str.lower() == username
+def get_student_record(df, admission_no):
+    row = df[
+        df["ADMISSION_NO"].astype(str).str.upper()
+        == str(admission_no).upper()
     ]
 
-    if student_row.empty:
+    if row.empty:
         return None
 
-    return student_row.iloc[0]
+    return row.iloc[0]
