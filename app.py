@@ -109,6 +109,10 @@ student_mode = st.sidebar.toggle("Enable Student Login")
 st.sidebar.markdown("## 👨‍👩‍👧 Parent Portal")
 parent_mode = st.sidebar.toggle("Enable Parent Login")
 
+institution_type = st.sidebar.selectbox(
+    "🏢 Institution Type",
+    ["College", "School", "Coaching Centre"]
+)
 # ---------------- FILE UPLOAD ----------------
 uploaded_file = st.file_uploader("📁 Upload CSV File", type=["csv"])
 
