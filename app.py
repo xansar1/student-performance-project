@@ -41,6 +41,63 @@ from core.ml_inference import (
     predict_placement_probability
 )
 
+def generate_sample_csv(institution_type, academic_level=None):
+    if institution_type == "School":
+        if academic_level == "10":
+            sample_df = pd.DataFrame({
+                "STUDENT_NAME": ["Ameen", "Fathima"],
+                "ENGLISH": [78, 88],
+                "MALAYALAM": [80, 90],
+                "HINDI": [70, 85],
+                "MATHS": [92, 95],
+                "PHYSICS": [85, 91],
+                "CHEMISTRY": [83, 89],
+                "BIOLOGY": [84, 90],
+                "SOCIAL_SCIENCE": [79, 87],
+                "COMPUTER": [90, 94]
+            })
+        else:
+            sample_df = pd.DataFrame({
+                "STUDENT_NAME": ["Ameen", "Fathima"],
+                "ENGLISH": [78, 88],
+                "MALAYALAM": [80, 90],
+                "HINDI": [70, 85],
+                "MATHS": [92, 95],
+                "BASIC_SCIENCE": [85, 91],
+                "SOCIAL_SCIENCE": [79, 87],
+                "COMPUTER": [90, 94]
+            })
+
+    elif institution_type == "Higher Secondary":
+        sample_df = pd.DataFrame({
+            "STUDENT_NAME": ["Ameen", "Fathima"],
+            "ENGLISH": [78, 88],
+            "PHYSICS": [85, 91],
+            "CHEMISTRY": [83, 89],
+            "MATHS": [92, 95],
+            "BIOLOGY": [84, 90],
+            "COMPUTER": [90, 94]
+        })
+
+    elif institution_type == "College":
+        sample_df = pd.DataFrame({
+            "STUDENT_NAME": ["Ameen", "Fathima"],
+            "SUBJECT_1": [78, 88],
+            "SUBJECT_2": [85, 91],
+            "SUBJECT_3": [83, 89],
+            "SUBJECT_4": [92, 95]
+        })
+
+    else:
+        sample_df = pd.DataFrame({
+            "STUDENT_NAME": ["Ameen", "Fathima"],
+            "TEST_1": [78, 88],
+            "TEST_2": [85, 91],
+            "TEST_3": [83, 89]
+        })
+
+    return sample_df
+
 # ---------------- PAGE CONFIG ----------------
 st.set_page_config(
     page_title="AI Academic Performance Analytics",
@@ -131,6 +188,18 @@ elif institution_type == "Higher Secondary":
 
 elif institution_type == "College":
     department = st.sidebar.text_input("🏛 Department")
+
+sample_df = generate_sample_csv(
+    institution_type,
+    academic_level
+)
+
+st.download_button(
+    "📥 Download Sample Format",
+    data=sample_df.to_csv(index=False).encode("utf-8"),
+    file_name=f"{institution_type.lower()}_sample.csv",
+    mime="text/csv"
+)
     
 # ---------------- FILE UPLOAD ----------------
 uploaded_file = st.file_uploader("📁 Upload CSV File", type=["csv"])
