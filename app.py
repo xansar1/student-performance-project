@@ -311,8 +311,6 @@ st.info(
     f"Avg: {api_kpis['avg_score']}"
 )
 
-topper_org = topper["UNIVERSITY"] if "UNIVERSITY" in topper else "Institution"
-
 st.success(
     f"🏆 Top Performer: {topper['STUDENT_NAME']} | "
     f"{topper_org} | Score: {topper['TOTAL_SCORE']}"
@@ -345,8 +343,10 @@ university_avg = round(
     2
 )
 
+benchmark_label = f"{primary_label} Avg"
+
 compare_df = pd.DataFrame({
-    "Category": ["Student Score", "University Avg"],
+    "Category": ["Student Score", benchmark_label],
     "Score": [student_row["TOTAL_SCORE"], university_avg]
 })
 
@@ -354,7 +354,7 @@ fig_compare = px.bar(
     compare_df,
     x="Category",
     y="Score",
-    title=f"{student_row['STUDENT_NAME']} Benchmark Comparison"
+    title=f"{student_row['STUDENT_NAME']} vs {benchmark_label}"
 )
 st.plotly_chart(fig_compare, use_container_width=True)
 
