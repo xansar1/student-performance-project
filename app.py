@@ -326,7 +326,7 @@ except ValueError as e:
     st.error(str(e))
     st.stop()
 
-student_users, parent_users = generate_dynamic_credentials(sample_df)
+student_users, parent_users = generate_dynamic_credentials(df)
 
 # ---------------- TENANT ISOLATION ----------------
 if st.session_state.user_info:
@@ -878,19 +878,22 @@ numeric_cols = df.select_dtypes(include="number").columns.tolist()
 preferred_x = "GENERAL_SCORE"
 preferred_y = "DOMAIN_SCORE"
 
-x_col = preferred_x if preferred_x in numeric_cols else numeric_cols[0]
-y_col = preferred_y if preferred_y in numeric_cols else numeric_cols[1]
+if len(numeric_cols) >= 2:
+    x_col = preferred_x if preferred_x in numeric_cols else numeric_cols[0]
+    y_col = preferred_y if preferred_y in numeric_cols else numeric_cols[1]
 
-cluster_fig = px.scatter(
-    df,
-    x=x_col,
-    y=y_col,
-    color="CLUSTER",
-    size="TOTAL_SCORE" if "TOTAL_SCORE" in df.columns else None,
-    hover_data=["STUDENT_NAME"],
-    title=f"AI Cluster Segmentation ({x_col} vs {y_col})"
-)
-st.plotly_chart(cluster_fig, use_container_width=True)
+    cluster_fig = px.scatter(
+        df,
+        x=x_col,
+        y=y_col,
+        color="CLUSTER",
+        size="TOTAL_SCORE" if "TOTAL_SCORE" in df.columns else None,
+        hover_data=["STUDENT_NAME"],
+        title=f"AI Cluster Segmentation ({x_col} vs {y_col})"
+    )
+    st.plotly_chart(cluster_fig, use_container_width=True)
+else:
+    st.warning("Not enough numeric columns for clustering chart.")
 
 # ---------------- DROPOUT ----------------
 st.subheader("🤖 AI Dropout Prediction")
