@@ -651,6 +651,7 @@ st.success(
 )
 
 # ---------------- STUDENT SEARCH ----------------
+student_row = None
 student_name = st.selectbox(
     "🔍 Select Student",
     df["STUDENT_NAME"].sort_values().unique()
@@ -1087,9 +1088,10 @@ eval_df = build_evaluation_dataframe(df)
 st.dataframe(eval_df, use_container_width=True)
 
 # ---------------- GENAI ADVISOR ----------------
-st.subheader("🧠 GenAI Academic Advisor")
-advisor_report = generate_student_advisor_report(student_row)
-st.markdown(advisor_report)
+if student_row is not None:
+    st.subheader("🧠 GenAI Academic Advisor")
+    advisor_report = generate_student_advisor_report(student_row)
+    st.markdown(advisor_report)
 
 # ---------------- REAL ML ----------------
 st.subheader("🌲 Real ML Training Pipeline")
