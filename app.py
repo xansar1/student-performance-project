@@ -64,6 +64,16 @@ def generate_dynamic_credentials(df):
         ).hexdigest()
 
     return student_users, parent_users
+
+def get_subject_mark_cols(df, exclude_cols):
+    return [
+        col for col in df.columns
+        if col not in exclude_cols
+        and pd.api.types.is_numeric_dtype(df[col])
+        and "RISK" not in col
+        and "PROBABILITY" not in col
+        and "PREDICTION" not in col
+    ]
     
 def generate_sample_csv(institution_type, academic_level=None):
     if institution_type == "School":
@@ -413,11 +423,7 @@ if st.session_state.get("student_user"):
             "PROGRAM"
         }
 
-        mark_cols = [
-            col for col in df.columns
-            if col not in exclude_cols
-            and pd.api.types.is_numeric_dtype(df[col])
-        ]
+        mark_cols = get_subject_mark_cols(df, exclude_cols)
 
         marks_df = pd.DataFrame({
             "Subject": mark_cols,
@@ -489,11 +495,7 @@ if st.session_state.get("parent_user"):
             "PROGRAM"
         }
 
-        mark_cols = [
-            col for col in df.columns
-            if col not in exclude_cols
-            and pd.api.types.is_numeric_dtype(df[col])
-        ]
+        mark_cols = get_subject_mark_cols(df, exclude_cols)
 
         marks_df = pd.DataFrame({
             "Subject": mark_cols,
