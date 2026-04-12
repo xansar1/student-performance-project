@@ -378,6 +378,7 @@ if st.session_state.get("student_user"):
     )
 
     if student_data is not None:
+        # Top metrics
         s1, s2, s3 = st.columns(3)
         s1.metric("📈 Current Score", student_data["TOTAL_SCORE"])
         s2.metric(
@@ -388,12 +389,61 @@ if st.session_state.get("student_user"):
             "📈 Next Semester Forecast",
             round(student_data["NEXT_SEM_PREDICTION"], 2)
         )
+
         st.info(student_data["AI_INTERVENTION"])
+
+        # Subject-wise marks
+        st.subheader("📚 Subject-wise Marks")
+
+        exclude_cols = {
+            "ADMISSION_NO",
+            "STUDENT_NAME",
+            "CLASS",
+            "SECTION",
+            "MEDIUM",
+            "TOTAL_SCORE",
+            "GENERAL_SCORE",
+            "DOMAIN_SCORE",
+            "CLUSTER",
+            "AI_DROPOUT_RISK",
+            "AI_INTERVENTION",
+            "NEXT_SEM_PREDICTION",
+            "PLACEMENT_PROBABILITY",
+            "UNIVERSITY",
+            "PROGRAM"
+        }
+
+        mark_cols = [
+            col for col in df.columns
+            if col not in exclude_cols
+            and pd.api.types.is_numeric_dtype(df[col])
+        ]
+
+        marks_df = pd.DataFrame({
+            "Subject": mark_cols,
+            "Score": [student_data[col] for col in mark_cols]
+        })
+
+        st.dataframe(marks_df, use_container_width=True)
+
+        fig_student = px.bar(
+            marks_df,
+            x="Subject",
+            y="Score",
+            title=f"{student_data['STUDENT_NAME']} Subject Performance"
+        )
+        st.plotly_chart(fig_student, use_container_width=True)
+
+        weakest = marks_df.sort_values("Score").iloc[0]
+        st.warning(
+            f"⚠️ Focus Area: {weakest['Subject']} "
+            f"(Score: {weakest['Score']})"
+        )
+
     else:
         st.warning("Student record not found.")
 
     st.stop()
-
 
 if st.session_state.get("parent_user"):
     st.subheader("👨‍👩‍👧 Parent Progress Portal")
@@ -404,6 +454,7 @@ if st.session_state.get("parent_user"):
     )
 
     if student_data is not None:
+        # Top KPI cards
         p1, p2, p3 = st.columns(3)
         p1.metric("📈 Current Score", student_data["TOTAL_SCORE"])
         p2.metric(
@@ -414,7 +465,71 @@ if st.session_state.get("parent_user"):
             "🎯 Placement Probability",
             round(student_data["PLACEMENT_PROBABILITY"], 2)
         )
+
         st.warning(student_data["AI_INTERVENTION"])
+
+        # Subject-wise marks
+        st.subheader("📚 Child Subject-wise Performance")
+
+        exclude_cols = {
+            "ADMISSION_NO",
+            "STUDENT_NAME",
+            "CLASS",
+            "SECTION",
+            "MEDIUM",
+            "TOTAL_SCORE",
+            "GENERAL_SCORE",
+            "DOMAIN_SCORE",
+            "CLUSTER",
+            "AI_DROPOUT_RISK",
+            "AI_INTERVENTION",
+            "NEXT_SEM_PREDICTION",
+            "PLACEMENT_PROBABILITY",
+            "UNIVERSITY",
+            "PROGRAM"
+        }
+
+        mark_cols = [
+            col for col in df.columns
+            if col not in exclude_cols
+            and pd.api.types.is_numeric_dtype(df[col])
+        ]
+
+        marks_df = pd.DataFrame({
+            "Subject": mark_cols,
+            "Score": [student_data[col] for col in mark_cols]
+        })
+
+        st.dataframe(marks_df, use_container_width=True)
+
+        fig_parent = px.bar(
+            marks_df,
+            x="Subject",
+            y="Score",
+            title=f"{student_data['STUDENT_NAME']} Subject Performance"
+        )
+        st.plotly_chart(fig_parent, use_container_width=True)
+
+        # Weakest subject insight
+        weakest = marks_df.sort_values("Score").iloc[0]
+        st.error(
+            f"⚠️ Parent Attention Needed: {weakest['Subject']} "
+            f"(Score: {weakest['Score']})"
+        )
+
+        # Parent message preview
+        st.subheader("📲 Suggested Parent Action")
+        parent_msg = (
+            f"Your child needs extra focus in {weakest['Subject']}. "
+            f"Current score is {weakest['Score']}. "
+            f"Recommended action: {student_data['AI_INTERVENTION']}"
+        )
+        st.text_area(
+            "Parent Guidance",
+            value=parent_msg,
+            height=120
+        )
+
     else:
         st.warning("Student record not found.")
 
