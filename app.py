@@ -44,6 +44,10 @@ def generate_dynamic_credentials(df):
     student_users = {}
     parent_users = {}
 
+    # Safety check
+    if df is None or "ADMISSION_NO" not in df.columns:
+        return student_users, parent_users
+
     for _, row in df.iterrows():
         admission_no = str(row["ADMISSION_NO"]).strip().upper()
 
