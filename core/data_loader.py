@@ -13,6 +13,7 @@ def load_and_clean_data(
     df.columns = [col.strip().upper() for col in df.columns]
 
     metadata_cols = {
+        "ADMISSION_NO",
         "STUDENT_NAME",
         "CLASS",
         "SECTION",
@@ -25,20 +26,23 @@ def load_and_clean_data(
         "COACHING_CENTRE"
     }
 
-    # detect all score columns dynamically
+    # detect score columns safely
     subject_cols = [
         col for col in df.columns
         if col not in metadata_cols
-        and col != "STUDENT_NAME"
     ]
 
     if not subject_cols:
         raise ValueError("No valid subject score columns found.")
 
+    # convert all marks columns safely
+    for col in subject_cols:
+        df[col] = pd.to_numeric(df[col], errors="coerce").fillna(0)
+
     # total score
     df["TOTAL_SCORE"] = df[subject_cols].sum(axis=1)
 
-    # first 2 subjects for existing analytics compatibility
+    # compatibility scores
     df["GENERAL_SCORE"] = df[subject_cols[0]]
 
     if len(subject_cols) > 1:
