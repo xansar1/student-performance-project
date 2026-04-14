@@ -1018,6 +1018,8 @@ if product_mode == "Advanced Analytics":
             .apply(lambda x: "High" if x > 0.8 else "Medium")
         )
         st.dataframe(revenue_risk_students, use_container_width=True)
+    else:
+        st.success(✅ No revenue retention risk students detected.")
 
     # Upsell
     st.subheader("🎯 Premium Upsell Opportunities")
@@ -1129,25 +1131,33 @@ if product_mode == "Advanced Analytics":
 
     st.text_area(
         "ROI Proposal",
-        value=f"Expected ROI Gain: ₹{roi_gain:,}",
+        value=(
+            f"Expected Revenue: ₹{forecast_revenue:,}\n",
+            f"Monthly Subscription: ₹{monthly_subscription:,}\n"
+            f"Estimated ROI Gain: ₹{roi_gain:,}\n"
+        )
+        
         height=120
     )
     # Cluster
     st.subheader("🧩 AI Cluster Segmentation")
     
     numeric_cols = df.select_dtypes(include="number").columns.tolist()
-    
-    x_col = "GENERAL_SCORE" if "GENERAL_SCORE" in df.columns else numeric_cols[0]
-    y_col = "DOMAIN_SCORE" if "DOMAIN_SCORE" in df.columns else numeric_cols[1]
-    
-    cluster_fig = px.scatter(
-        df,
-        x=x_col,
-        y=y_col,
-        color="CLUSTER",
-        hover_data=["STUDENT_NAME"]
-    )
-    st.plotly_chart(cluster_fig, use_container_width=True)
+
+    if len(numeric_cols) >= 2:
+        x_col = "GENERAL_SCORE" if "GENERAL_SCORE" in df.columns else numeric_cols[0]
+        y_col = "DOMAIN_SCORE" if "DOMAIN_SCORE" in df.columns else numeric_cols[1]
+        
+        cluster_fig = px.scatter(
+            df,
+            x=x_col,
+            y=y_col,
+            color="CLUSTER",
+            hover_data=["STUDENT_NAME"]
+        )
+        st.plotly_chart(cluster_fig, use_container_width=True)
+    else:
+        st.warning("Not enough numeric columns for clustering")
     # Dropout
     st.subheader("🤖 AI Dropout Prediction")
 
