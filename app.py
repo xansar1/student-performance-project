@@ -994,48 +994,34 @@ if phone:
 else:
     st.warning("⚠️ Parent phone number missing.")
 
-# ---------------- REVENUE RISK INTELLIGENCE ----------------
+# ---------------- ADVANCED ANALYTICS ----------------
+sales_df = None
+
 if product_mode == "Advanced Analytics":
+
+    # Revenue Risk
     st.subheader("💸 Revenue Retention Risk")
-    
+
     revenue_risk_students = df[
-    df["AI_DROPOUT_RISK"] > 0.6
+        df["AI_DROPOUT_RISK"] > 0.6
     ][
-    [
-        "STUDENT_NAME",
-        "TOTAL_SCORE",
-        "AI_DROPOUT_RISK"
-    ]
+        [
+            "STUDENT_NAME",
+            "TOTAL_SCORE",
+            "AI_DROPOUT_RISK"
+        ]
     ].copy()
-    
+
     if not revenue_risk_students.empty:
         revenue_risk_students["Retention Risk"] = (
             revenue_risk_students["AI_DROPOUT_RISK"]
             .apply(lambda x: "High" if x > 0.8 else "Medium")
         )
-        
-        st.dataframe(
-            revenue_risk_students,
-            use_container_width=True
-        )
-        
-        high_risk_count = len(
-            revenue_risk_students[
-            revenue_risk_students["Retention Risk"] == "High"
-            ]
-        )
-        
-        st.error(
-            f"⚠️ Estimated High Revenue Risk Students: "
-            f"{high_risk_count}"
-        )
-    else:
-        st.success("✅ No revenue retention risk students detected.")
-    
-# ---------------- PREMIUM UPSELL INTELLIGENCE ----------------
-if product_mode == "Advanced Analytics":
+        st.dataframe(revenue_risk_students, use_container_width=True)
+
+    # Upsell
     st.subheader("🎯 Premium Upsell Opportunities")
-    
+
     upsell_students = df[
         (df["TOTAL_SCORE"] > df["TOTAL_SCORE"].mean()) &
         (df["PLACEMENT_PROBABILITY"] > 0.7)
@@ -1046,17 +1032,14 @@ if product_mode == "Advanced Analytics":
             "PLACEMENT_PROBABILITY"
         ]
     ]
-    
-    st.dataframe(upsell_students, use_container_width=True)
-    
-    st.success(
-        f"💰 Premium Program Upsell Candidates: {len(upsell_students)}"
-    )
 
-# ---------------- AI SALES RECOMMENDATION ENGINE ----------------
-if product_mode == "Advanced Analytics":
+    if not upsell_students.empty:
+        st.dataframe(upsell_students, use_container_width=True)
+    else:
+        st.info("No upsell candidates found.")
+    # Sales recommendation
     st.subheader("🤖 AI Course Sales Recommendations")
-    
+
     def recommend_course(row):
         if row["AI_DROPOUT_RISK"] > 0.7:
             return "Remedial Support Program"
@@ -1064,9 +1047,8 @@ if product_mode == "Advanced Analytics":
             return "Placement Bootcamp"
         elif row["TOTAL_SCORE"] > df["TOTAL_SCORE"].mean():
             return "Advanced Excellence Batch"
-        else:
-            return "Standard Progress Program"
-    
+        return "Standard Progress Program"
+
     sales_df = df[
         [
             "STUDENT_NAME",
@@ -1075,20 +1057,19 @@ if product_mode == "Advanced Analytics":
             "PLACEMENT_PROBABILITY"
         ]
     ].copy()
-    
+
     sales_df["Recommended Program"] = sales_df.apply(
         recommend_course,
         axis=1
     )
-    
+
     st.dataframe(sales_df, use_container_width=True)
 
-# ---------------- AI COUNSELOR FOLLOW-UP DASHBOARD ----------------
-if product_mode == "Advanced Analytics":
+    # Followup
     st.subheader("📞 Counselor Follow-up Priority")
-    
+
     followup_df = sales_df.copy()
-    
+
     def get_followup_priority(row):
         if row["AI_DROPOUT_RISK"] > 0.8:
             return "Urgent Parent Call"
@@ -1097,14 +1078,13 @@ if product_mode == "Advanced Analytics":
             "Advanced Excellence Batch"
         ]:
             return "Upsell Counseling"
-        else:
-            return "Routine Academic Follow-up"
-    
+        return "Routine Academic Follow-up"
+
     followup_df["Counselor Action"] = followup_df.apply(
         get_followup_priority,
         axis=1
     )
-    
+
     st.dataframe(
         followup_df[
             [
@@ -1116,17 +1096,14 @@ if product_mode == "Advanced Analytics":
         use_container_width=True
     )
 
-# ---------------- REVENUE FORECAST DASHBOARD ----------------
-if product_mode == "Advanced Analytics":
+    # Revenue Forecast
     st.subheader("📊 Revenue Forecast Intelligence")
-    
+
     base_fee = 3000
     premium_fee = 8000
-    
-    expected_renewals = len(
-        df[df["AI_DROPOUT_RISK"] <= 0.6]
-    )
-    
+
+    expected_renewals = len(df[df["AI_DROPOUT_RISK"] <= 0.6])
+
     expected_premium = len(
         sales_df[
             sales_df["Recommended Program"].isin([
@@ -1135,157 +1112,82 @@ if product_mode == "Advanced Analytics":
             ])
         ]
     )
-    
+
     forecast_revenue = (
         expected_renewals * base_fee
     ) + (
         expected_premium * premium_fee
     )
-    
-    st.metric("💰 Expected Next Month Revenue", f"₹{forecast_revenue:,}")
-    st.metric("📈 Expected Renewals", expected_renewals)
-    st.metric("🎯 Premium Upsells", expected_premium)
 
-# ---------------- ROI PROPOSAL GENERATOR ----------------
-if product_mode == "Advanced Analytics":
+    st.metric("💰 Expected Revenue", f"₹{forecast_revenue:,}")
+
+    # ROI
     st.subheader("🧾 ROI Proposal Summary")
 
     monthly_subscription = 5000
     roi_gain = forecast_revenue - monthly_subscription
 
-    proposal_text = f"""
-    Institution Revenue Forecast: ₹{forecast_revenue:,}
-    Expected Premium Upsells: {expected_premium}
-    Expected Renewals: {expected_renewals}
-
-    Suggested SaaS Subscription: ₹{monthly_subscription:,}/month
-
-    Estimated ROI Gain After Subscription:
-    ₹{roi_gain:,} per month
-    """
-
     st.text_area(
-        "Institution ROI Proposal",
-        value=proposal_text,
-        height=220
+        "ROI Proposal",
+        value=f"Expected ROI Gain: ₹{roi_gain:,}",
+        height=120
     )
-
-# ---------------- CLUSTER ----------------
-if product_mode == "Advanced Analytics":
+    # Cluster
     st.subheader("🧩 AI Cluster Segmentation")
-
+    
     numeric_cols = df.select_dtypes(include="number").columns.tolist()
-
-    preferred_x = "GENERAL_SCORE"
-    preferred_y = "DOMAIN_SCORE"
-
-    if len(numeric_cols) >= 2:
-        x_col = preferred_x if preferred_x in numeric_cols else numeric_cols[0]
-        y_col = preferred_y if preferred_y in numeric_cols else numeric_cols[1]
-
-        cluster_fig = px.scatter(
-            df,
-            x=x_col,
-            y=y_col,
-            color="CLUSTER",
-            size="TOTAL_SCORE" if "TOTAL_SCORE" in df.columns else None,
-            hover_data=["STUDENT_NAME"],
-            title=f"AI Cluster Segmentation ({x_col} vs {y_col})"
-        )
-        st.plotly_chart(cluster_fig, use_container_width=True)
-    else:
-        st.warning("Not enough numeric columns for clustering chart.")
-
-# ---------------- DROPOUT ----------------
-if product_mode == "Advanced Analytics":
+    
+    x_col = "GENERAL_SCORE" if "GENERAL_SCORE" in df.columns else numeric_cols[0]
+    y_col = "DOMAIN_SCORE" if "DOMAIN_SCORE" in df.columns else numeric_cols[1]
+    
+    cluster_fig = px.scatter(
+        df,
+        x=x_col,
+        y=y_col,
+        color="CLUSTER",
+        hover_data=["STUDENT_NAME"]
+    )
+    st.plotly_chart(cluster_fig, use_container_width=True)
+    # Dropout
     st.subheader("🤖 AI Dropout Prediction")
 
-    risk_fig = px.histogram(
-        df,
-        x="AI_DROPOUT_RISK",
-        nbins=20,
-        title="AI Dropout Risk Probability Distribution"
-    )
+    risk_fig = px.histogram(df, x="AI_DROPOUT_RISK")
     st.plotly_chart(risk_fig, use_container_width=True)
 
-# ---------------- INTERVENTION ----------------
-st.subheader("🎯 Personalized AI Intervention Engine")
-st.dataframe(
-    df[
-        [
-            "STUDENT_NAME",
-            "TOTAL_SCORE",
-            "AI_DROPOUT_RISK",
-            "AI_INTERVENTION"
-        ]
-    ],
-    use_container_width=True
-)
+    # Intervention
+    st.subheader("🎯 Personalized AI Intervention")
+    st.dataframe(
+        df[
+            [
+                "STUDENT_NAME",
+                "AI_INTERVENTION"
+            ]
+        ],
+        use_container_width=True
+    )
 
-# ---------------- FORECAST ----------------
-if product_mode == "Advanced Analytics":
-    st.subheader("📈 Next Semester Forecasting AI")
-
+    # Forecast
+    st.subheader("📈 Next Semester Forecast")
     forecast_fig = px.scatter(
         df,
         x="TOTAL_SCORE",
-        y="NEXT_SEM_PREDICTION",
-        hover_data=["STUDENT_NAME"],
-        title="Current Score vs Next Semester Forecast"
+        y="NEXT_SEM_PREDICTION"
     )
     st.plotly_chart(forecast_fig, use_container_width=True)
 
-# ---------------- PLACEMENT ----------------
-if product_mode == "Advanced Analytics":
-    st.subheader("🎓 Placement Prediction AI")
-
+    # Placement
+    st.subheader("🎓 Placement Prediction")
     placement_fig = px.histogram(
         df,
-        x="PLACEMENT_PROBABILITY",
-        nbins=20,
-        title="Placement Probability Distribution"
+        x="PLACEMENT_PROBABILITY"
     )
     st.plotly_chart(placement_fig, use_container_width=True)
 
-# ---------------- MODEL EVAL ----------------
-if product_mode == "Advanced Analytics":
-    st.subheader("📊 AI Model Evaluation Dashboard")
+    # Model Eval
+    st.subheader("📊 AI Model Evaluation")
     eval_df = build_evaluation_dataframe(df)
     st.dataframe(eval_df, use_container_width=True)
-
-# ---------------- GENAI ADVISOR ----------------
-if student_row is not None:
-    st.subheader("🧠 GenAI Academic Advisor")
-    advisor_report = generate_student_advisor_report(student_row)
-    st.markdown(advisor_report)
-
-# ---------------- REAL ML ----------------
-if product_mode == "Advanced Analytics":
-    st.subheader("🌲 Real ML Training Pipeline")
     
-    if st.button("🚀 Train Real ML Models"):
-        dropout_acc = train_dropout_model(df)
-        placement_acc = train_placement_model(df)
-        
-        st.success(
-            f"Dropout Model Accuracy: {dropout_acc} | "
-            f"Placement Model Accuracy: {placement_acc}"
-        )
-        
-        df = predict_dropout_probability(df)
-        df = predict_placement_probability(df)
-        
-        st.dataframe(
-            df[
-                [
-                    "STUDENT_NAME",
-                    "REAL_ML_DROPOUT_PROB",
-                    "REAL_ML_PLACEMENT_PROB"
-                ]
-            ],
-            use_container_width=True
-        )
-
 # ---------------- REPORTING ----------------
 pdf_buffer = generate_pdf_report(
     df,
