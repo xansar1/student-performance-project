@@ -997,7 +997,9 @@ else:
 # ---------------- ADVANCED ANALYTICS ----------------
 sales_df = None
 
-if product_mode == "Advanced Analytics":
+if (
+    product_mode == "Advanced Analytics" 
+    and institution_type in ["College", "Coaching Centre"]
 
     # Revenue Risk
     st.subheader("💸 Revenue Retention Risk")
@@ -1019,7 +1021,7 @@ if product_mode == "Advanced Analytics":
         )
         st.dataframe(revenue_risk_students, use_container_width=True)
     else:
-        st.success(✅ No revenue retention risk students detected.")
+        st.success("✅ No revenue retention risk students detected.")
 
     # Upsell
     st.subheader("🎯 Premium Upsell Opportunities")
@@ -1129,16 +1131,17 @@ if product_mode == "Advanced Analytics":
     monthly_subscription = 5000
     roi_gain = forecast_revenue - monthly_subscription
 
-    st.text_area(
-        "ROI Proposal",
-        value=(
+        roi_text = (
             f"Expected Revenue: ₹{forecast_revenue:,}\n",
             f"Monthly Subscription: ₹{monthly_subscription:,}\n"
             f"Estimated ROI Gain: ₹{roi_gain:,}\n"
         )
-        
-        height=120
-    )
+
+        st.text_area(
+            "ROI Proposal",
+            value=roi_text,
+            height=120
+        )
     # Cluster
     st.subheader("🧩 AI Cluster Segmentation")
     
