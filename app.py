@@ -394,6 +394,7 @@ elif input_mode == "Quick Table Entry":
     editable_df = pd.DataFrame({
         "ADMISSION_NO": [f"ST{i+1:03}" for i in range(row_count)],
         "STUDENT_NAME": ["" for _ in range(row_count)],
+        "PARENT_PHONE": ["" for _ in range(row_count)],
         **{sub: [0 for _ in range(row_count)] for sub in subject_names}
     })
 
@@ -885,10 +886,12 @@ else:
 # ---------------- PARENT WHATSAPP ALERT TEMPLATE ----------------
 st.subheader("📲 Parent WhatsApp Alert")
 
+phone = str(student_row.get("PARENT_PHONE", "")).strip()
+
 alert_message = (
-    f"Dear Parent, {student_row['STUDENT_NAME']} currently has "
-    f"a score of {student_row['TOTAL_SCORE']} with dropout risk "
-    f"probability {round(student_row['AI_DROPOUT_RISK'], 2)}. "
+    f"Dear Parent, {student_row['STUDENT_NAME']} currently scored "
+    f"{student_row['TOTAL_SCORE']}. "
+    f"Dropout risk: {round(student_row['AI_DROPOUT_RISK'], 2)}. "
     f"Recommended support: {student_row['AI_INTERVENTION']}"
 )
 
@@ -897,6 +900,18 @@ st.text_area(
     value=alert_message,
     height=120
 )
+
+if phone:
+    whatsapp_url = (
+        f"https://wa.me/91{phone}"
+        f"?text={alert_message.replace(' ', '%20')}"
+    )
+
+    st.markdown(
+        f"[📩 Send WhatsApp Alert to Parent]({whatsapp_url})"
+    )
+else:
+    st.warning("⚠️ Parent phone number not available.")
 
 # ---------------- REVENUE RISK INTELLIGENCE ----------------
 st.subheader("💸 Revenue Retention Risk")
