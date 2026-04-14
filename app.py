@@ -235,6 +235,11 @@ student_users, parent_users = generate_dynamic_credentials(
     credential_df
 )
 
+product_mode = st.sidebar.radio(
+    "🚀 Product Mode",
+    ["School Demo", "Advanced Analytics"]
+)
+
 # ---------------- LOGIN ----------------
 if (
     st.session_state.user_info is None
@@ -913,13 +918,10 @@ if phone:
 else:
     st.warning("⚠️ Parent phone number not available.")
 
-
-# ---------------- PARENT COMMUNICATION CENTER ----------------
 st.subheader("👨‍👩‍👧 Parent Communication Center")
 
 phone = str(student_row.get("PARENT_PHONE", "")).strip()
 
-# weakest subject identify
 subject_cols = [
     col for col in df.select_dtypes(include="number").columns
     if col not in [
@@ -933,16 +935,11 @@ subject_cols = [
     ]
 ]
 
-weakest_subject = None
-lowest_mark = None
+weakest_subject = min(subject_cols, key=lambda x: student_row[x])
+lowest_mark = student_row[weakest_subject]
 
-if subject_cols:
-    weakest_subject = min(subject_cols, key=lambda x: student_row[x])
-    lowest_mark = student_row[weakest_subject]
-
-# message type selector
 message_type = st.selectbox(
-    "📨 Parent Communication Type",
+    "📨 Communication Type",
     [
         "Weak Student Alert",
         "Topper Appreciation",
@@ -953,265 +950,263 @@ message_type = st.selectbox(
 
 if message_type == "Weak Student Alert":
     parent_msg = (
-        f"Dear Parent, {student_row['STUDENT_NAME']} needs support in "
-        f"{weakest_subject}. Current score: {lowest_mark}. "
-        f"Please provide revision support at home."
+        f"Dear Parent, {student_row['STUDENT_NAME']} needs "
+        f"additional support in {weakest_subject}. "
+        f"Current mark: {lowest_mark}. "
+        f"Please help with daily revision at home."
     )
 
 elif message_type == "Topper Appreciation":
     parent_msg = (
-        f"Congratulations! {student_row['STUDENT_NAME']} performed "
-        f"excellent in the recent assessment with "
-        f"{student_row['TOTAL_SCORE']} marks. Keep it up!"
+        f"Congratulations! {student_row['STUDENT_NAME']} "
+        f"has performed excellently with "
+        f"{student_row['TOTAL_SCORE']} marks. "
+        f"Thank you for your continuous support."
     )
 
 elif message_type == "Exam Reminder":
-    exam_date = st.date_input("📅 Select Exam Date")
+    exam_date = st.date_input("📅 Exam Date")
     parent_msg = (
-        f"Reminder: Upcoming exam for "
-        f"{student_row['STUDENT_NAME']} on {exam_date}. "
-        f"Please ensure preparation and attendance."
+        f"Reminder: {student_row['STUDENT_NAME']}'s exam is on "
+        f"{exam_date}. Please ensure timely preparation."
     )
 
 else:
-    homework = st.text_input("📚 Homework Topic", "Revision")
-    due_date = st.date_input("📅 Homework Due Date")
+    homework = st.text_input("📚 Homework", "Revision")
+    due_date = st.date_input("📅 Due Date")
     parent_msg = (
-        f"Homework reminder for {student_row['STUDENT_NAME']}: "
-        f"{homework}. Submit before {due_date}."
+        f"Homework reminder: {homework}. "
+        f"Please complete before {due_date}."
     )
 
 st.text_area(
-    "📩 Parent Message Preview",
+    "📩 Message Preview",
     value=parent_msg,
     height=150
 )
 
-# communication report log
-report_df = pd.DataFrame({
-    "Student": [student_row["STUDENT_NAME"]],
-    "Phone": [phone],
-    "Message Type": [message_type],
-    "Preview": [parent_msg[:80] + "..."]
-})
-
-st.dataframe(report_df, use_container_width=True)
-
-# one click whatsapp
 if phone:
     whatsapp_url = (
         f"https://wa.me/91{phone}"
         f"?text={parent_msg.replace(' ', '%20')}"
     )
-    st.markdown(f"[📲 Send to Parent WhatsApp]({whatsapp_url})")
+    st.markdown(f"[📲 Send WhatsApp Message]({whatsapp_url})")
 else:
-    st.warning("⚠️ Parent phone number not found.")
+    st.warning("⚠️ Parent phone number missing.")
 
 # ---------------- REVENUE RISK INTELLIGENCE ----------------
-st.subheader("💸 Revenue Retention Risk")
-
-revenue_risk_students = df[
+if product_mode == "Advanced Analytics":
+    st.subheader("💸 Revenue Retention Risk")
+    
+    revenue_risk_students = df[
     df["AI_DROPOUT_RISK"] > 0.6
-][
+    ][
     [
         "STUDENT_NAME",
         "TOTAL_SCORE",
         "AI_DROPOUT_RISK"
     ]
-].copy()
-
-if not revenue_risk_students.empty:
-    revenue_risk_students["Retention Risk"] = (
-        revenue_risk_students["AI_DROPOUT_RISK"]
-        .apply(lambda x: "High" if x > 0.8 else "Medium")
+    ].copy()
+    
+    if not revenue_risk_students.empty:
+        revenue_risk_students["Retention Risk"] = (
+            revenue_risk_students["AI_DROPOUT_RISK"]
+            .apply(lambda x: "High" if x > 0.8 else "Medium")
+        )
+        
+        st.dataframe(
+            revenue_risk_students,
+            use_container_width=True
+        )
+        
+        high_risk_count = len(
+            revenue_risk_students[
+            revenue_risk_students["Retention Risk"] == "High"
+            ]
+        )
+        
+        st.error(
+            f"⚠️ Estimated High Revenue Risk Students: "
+            f"{high_risk_count}"
+        )
+    else:
+        st.success("✅ No revenue retention risk students detected.")
+    
+# ---------------- PREMIUM UPSELL INTELLIGENCE ----------------
+if product_mode == "Advanced Analytics":
+    st.subheader("🎯 Premium Upsell Opportunities")
+    
+    upsell_students = df[
+        (df["TOTAL_SCORE"] > df["TOTAL_SCORE"].mean()) &
+        (df["PLACEMENT_PROBABILITY"] > 0.7)
+    ][
+        [
+            "STUDENT_NAME",
+            "TOTAL_SCORE",
+            "PLACEMENT_PROBABILITY"
+        ]
+    ]
+    
+    st.dataframe(upsell_students, use_container_width=True)
+    
+    st.success(
+        f"💰 Premium Program Upsell Candidates: {len(upsell_students)}"
     )
 
+# ---------------- AI SALES RECOMMENDATION ENGINE ----------------
+if product_mode == "Advanced Analytics":
+    st.subheader("🤖 AI Course Sales Recommendations")
+    
+    def recommend_course(row):
+        if row["AI_DROPOUT_RISK"] > 0.7:
+            return "Remedial Support Program"
+        elif row["PLACEMENT_PROBABILITY"] > 0.8:
+            return "Placement Bootcamp"
+        elif row["TOTAL_SCORE"] > df["TOTAL_SCORE"].mean():
+            return "Advanced Excellence Batch"
+        else:
+            return "Standard Progress Program"
+    
+    sales_df = df[
+        [
+            "STUDENT_NAME",
+            "TOTAL_SCORE",
+            "AI_DROPOUT_RISK",
+            "PLACEMENT_PROBABILITY"
+        ]
+    ].copy()
+    
+    sales_df["Recommended Program"] = sales_df.apply(
+        recommend_course,
+        axis=1
+    )
+    
+    st.dataframe(sales_df, use_container_width=True)
+
+# ---------------- AI COUNSELOR FOLLOW-UP DASHBOARD ----------------
+if product_mode == "Advanced Analytics":
+    st.subheader("📞 Counselor Follow-up Priority")
+    
+    followup_df = sales_df.copy()
+    
+    def get_followup_priority(row):
+        if row["AI_DROPOUT_RISK"] > 0.8:
+            return "Urgent Parent Call"
+        elif row["Recommended Program"] in [
+            "Placement Bootcamp",
+            "Advanced Excellence Batch"
+        ]:
+            return "Upsell Counseling"
+        else:
+            return "Routine Academic Follow-up"
+    
+    followup_df["Counselor Action"] = followup_df.apply(
+        get_followup_priority,
+        axis=1
+    )
+    
     st.dataframe(
-        revenue_risk_students,
+        followup_df[
+            [
+                "STUDENT_NAME",
+                "Recommended Program",
+                "Counselor Action"
+            ]
+        ],
         use_container_width=True
     )
 
-    high_risk_count = len(
-        revenue_risk_students[
-            revenue_risk_students["Retention Risk"] == "High"
-        ]
-    )
-
-    st.error(
-        f"⚠️ Estimated High Revenue Risk Students: "
-        f"{high_risk_count}"
-    )
-else:
-    st.success("✅ No revenue retention risk students detected.")
-
-# ---------------- PREMIUM UPSELL INTELLIGENCE ----------------
-st.subheader("🎯 Premium Upsell Opportunities")
-
-upsell_students = df[
-    (df["TOTAL_SCORE"] > df["TOTAL_SCORE"].mean()) &
-    (df["PLACEMENT_PROBABILITY"] > 0.7)
-][
-    [
-        "STUDENT_NAME",
-        "TOTAL_SCORE",
-        "PLACEMENT_PROBABILITY"
-    ]
-]
-
-st.dataframe(upsell_students, use_container_width=True)
-
-st.success(
-    f"💰 Premium Program Upsell Candidates: {len(upsell_students)}"
-)
-
-# ---------------- AI SALES RECOMMENDATION ENGINE ----------------
-st.subheader("🤖 AI Course Sales Recommendations")
-
-def recommend_course(row):
-    if row["AI_DROPOUT_RISK"] > 0.7:
-        return "Remedial Support Program"
-    elif row["PLACEMENT_PROBABILITY"] > 0.8:
-        return "Placement Bootcamp"
-    elif row["TOTAL_SCORE"] > df["TOTAL_SCORE"].mean():
-        return "Advanced Excellence Batch"
-    else:
-        return "Standard Progress Program"
-
-sales_df = df[
-    [
-        "STUDENT_NAME",
-        "TOTAL_SCORE",
-        "AI_DROPOUT_RISK",
-        "PLACEMENT_PROBABILITY"
-    ]
-].copy()
-
-sales_df["Recommended Program"] = sales_df.apply(
-    recommend_course,
-    axis=1
-)
-
-st.dataframe(sales_df, use_container_width=True)
-
-# ---------------- AI COUNSELOR FOLLOW-UP DASHBOARD ----------------
-st.subheader("📞 Counselor Follow-up Priority")
-
-followup_df = sales_df.copy()
-
-def get_followup_priority(row):
-    if row["AI_DROPOUT_RISK"] > 0.8:
-        return "Urgent Parent Call"
-    elif row["Recommended Program"] in [
-        "Placement Bootcamp",
-        "Advanced Excellence Batch"
-    ]:
-        return "Upsell Counseling"
-    else:
-        return "Routine Academic Follow-up"
-
-followup_df["Counselor Action"] = followup_df.apply(
-    get_followup_priority,
-    axis=1
-)
-
-st.dataframe(
-    followup_df[
-        [
-            "STUDENT_NAME",
-            "Recommended Program",
-            "Counselor Action"
-        ]
-    ],
-    use_container_width=True
-)
-
 # ---------------- REVENUE FORECAST DASHBOARD ----------------
-st.subheader("📊 Revenue Forecast Intelligence")
-
-base_fee = 3000
-premium_fee = 8000
-
-expected_renewals = len(
-    df[df["AI_DROPOUT_RISK"] <= 0.6]
-)
-
-expected_premium = len(
-    sales_df[
-        sales_df["Recommended Program"].isin([
-            "Placement Bootcamp",
-            "Advanced Excellence Batch"
-        ])
-    ]
-)
-
-forecast_revenue = (
-    expected_renewals * base_fee
-) + (
-    expected_premium * premium_fee
-)
-
-st.metric("💰 Expected Next Month Revenue", f"₹{forecast_revenue:,}")
-st.metric("📈 Expected Renewals", expected_renewals)
-st.metric("🎯 Premium Upsells", expected_premium)
+if product_mode == "Advanced Analytics":
+    st.subheader("📊 Revenue Forecast Intelligence")
+    
+    base_fee = 3000
+    premium_fee = 8000
+    
+    expected_renewals = len(
+        df[df["AI_DROPOUT_RISK"] <= 0.6]
+    )
+    
+    expected_premium = len(
+        sales_df[
+            sales_df["Recommended Program"].isin([
+                "Placement Bootcamp",
+                "Advanced Excellence Batch"
+            ])
+        ]
+    )
+    
+    forecast_revenue = (
+        expected_renewals * base_fee
+    ) + (
+        expected_premium * premium_fee
+    )
+    
+    st.metric("💰 Expected Next Month Revenue", f"₹{forecast_revenue:,}")
+    st.metric("📈 Expected Renewals", expected_renewals)
+    st.metric("🎯 Premium Upsells", expected_premium)
 
 # ---------------- ROI PROPOSAL GENERATOR ----------------
-st.subheader("🧾 ROI Proposal Summary")
+if product_mode == "Advanced Analytics":
+    st.subheader("🧾 ROI Proposal Summary")
 
-monthly_subscription = 5000
-roi_gain = forecast_revenue - monthly_subscription
+    monthly_subscription = 5000
+    roi_gain = forecast_revenue - monthly_subscription
 
-proposal_text = f"""
-Institution Revenue Forecast: ₹{forecast_revenue:,}
-Expected Premium Upsells: {expected_premium}
-Expected Renewals: {expected_renewals}
+    proposal_text = f"""
+    Institution Revenue Forecast: ₹{forecast_revenue:,}
+    Expected Premium Upsells: {expected_premium}
+    Expected Renewals: {expected_renewals}
 
-Suggested SaaS Subscription: ₹{monthly_subscription:,}/month
+    Suggested SaaS Subscription: ₹{monthly_subscription:,}/month
 
-Estimated ROI Gain After Subscription:
-₹{roi_gain:,} per month
-"""
+    Estimated ROI Gain After Subscription:
+    ₹{roi_gain:,} per month
+    """
 
-st.text_area(
-    "Institution ROI Proposal",
-    value=proposal_text,
-    height=220
-)
+    st.text_area(
+        "Institution ROI Proposal",
+        value=proposal_text,
+        height=220
+    )
 
 # ---------------- CLUSTER ----------------
-st.subheader("🧩 AI Cluster Segmentation")
+if product_mode == "Advanced Analytics":
+    st.subheader("🧩 AI Cluster Segmentation")
 
-numeric_cols = df.select_dtypes(include="number").columns.tolist()
+    numeric_cols = df.select_dtypes(include="number").columns.tolist()
 
-preferred_x = "GENERAL_SCORE"
-preferred_y = "DOMAIN_SCORE"
+    preferred_x = "GENERAL_SCORE"
+    preferred_y = "DOMAIN_SCORE"
 
-if len(numeric_cols) >= 2:
-    x_col = preferred_x if preferred_x in numeric_cols else numeric_cols[0]
-    y_col = preferred_y if preferred_y in numeric_cols else numeric_cols[1]
+    if len(numeric_cols) >= 2:
+        x_col = preferred_x if preferred_x in numeric_cols else numeric_cols[0]
+        y_col = preferred_y if preferred_y in numeric_cols else numeric_cols[1]
 
-    cluster_fig = px.scatter(
-        df,
-        x=x_col,
-        y=y_col,
-        color="CLUSTER",
-        size="TOTAL_SCORE" if "TOTAL_SCORE" in df.columns else None,
-        hover_data=["STUDENT_NAME"],
-        title=f"AI Cluster Segmentation ({x_col} vs {y_col})"
-    )
-    st.plotly_chart(cluster_fig, use_container_width=True)
-else:
-    st.warning("Not enough numeric columns for clustering chart.")
+        cluster_fig = px.scatter(
+            df,
+            x=x_col,
+            y=y_col,
+            color="CLUSTER",
+            size="TOTAL_SCORE" if "TOTAL_SCORE" in df.columns else None,
+            hover_data=["STUDENT_NAME"],
+            title=f"AI Cluster Segmentation ({x_col} vs {y_col})"
+        )
+        st.plotly_chart(cluster_fig, use_container_width=True)
+    else:
+        st.warning("Not enough numeric columns for clustering chart.")
 
 # ---------------- DROPOUT ----------------
-st.subheader("🤖 AI Dropout Prediction")
+if product_mode == "Advanced Analytics":
+    st.subheader("🤖 AI Dropout Prediction")
 
-risk_fig = px.histogram(
-    df,
-    x="AI_DROPOUT_RISK",
-    nbins=20,
-    title="AI Dropout Risk Probability Distribution"
-)
-st.plotly_chart(risk_fig, use_container_width=True)
+    risk_fig = px.histogram(
+        df,
+        x="AI_DROPOUT_RISK",
+        nbins=20,
+        title="AI Dropout Risk Probability Distribution"
+    )
+    st.plotly_chart(risk_fig, use_container_width=True)
 
 # ---------------- INTERVENTION ----------------
 st.subheader("🎯 Personalized AI Intervention Engine")
@@ -1228,32 +1223,35 @@ st.dataframe(
 )
 
 # ---------------- FORECAST ----------------
-st.subheader("📈 Next Semester Forecasting AI")
+if product_mode == "Advanced Analytics":
+    st.subheader("📈 Next Semester Forecasting AI")
 
-forecast_fig = px.scatter(
-    df,
-    x="TOTAL_SCORE",
-    y="NEXT_SEM_PREDICTION",
-    hover_data=["STUDENT_NAME"],
-    title="Current Score vs Next Semester Forecast"
-)
-st.plotly_chart(forecast_fig, use_container_width=True)
+    forecast_fig = px.scatter(
+        df,
+        x="TOTAL_SCORE",
+        y="NEXT_SEM_PREDICTION",
+        hover_data=["STUDENT_NAME"],
+        title="Current Score vs Next Semester Forecast"
+    )
+    st.plotly_chart(forecast_fig, use_container_width=True)
 
 # ---------------- PLACEMENT ----------------
-st.subheader("🎓 Placement Prediction AI")
+if product_mode == "Advanced Analytics":
+    st.subheader("🎓 Placement Prediction AI")
 
-placement_fig = px.histogram(
-    df,
-    x="PLACEMENT_PROBABILITY",
-    nbins=20,
-    title="Placement Probability Distribution"
-)
-st.plotly_chart(placement_fig, use_container_width=True)
+    placement_fig = px.histogram(
+        df,
+        x="PLACEMENT_PROBABILITY",
+        nbins=20,
+        title="Placement Probability Distribution"
+    )
+    st.plotly_chart(placement_fig, use_container_width=True)
 
 # ---------------- MODEL EVAL ----------------
-st.subheader("📊 AI Model Evaluation Dashboard")
-eval_df = build_evaluation_dataframe(df)
-st.dataframe(eval_df, use_container_width=True)
+if product_mode == "Advanced Analytics":
+    st.subheader("📊 AI Model Evaluation Dashboard")
+    eval_df = build_evaluation_dataframe(df)
+    st.dataframe(eval_df, use_container_width=True)
 
 # ---------------- GENAI ADVISOR ----------------
 if student_row is not None:
@@ -1262,30 +1260,31 @@ if student_row is not None:
     st.markdown(advisor_report)
 
 # ---------------- REAL ML ----------------
-st.subheader("🌲 Real ML Training Pipeline")
-
-if st.button("🚀 Train Real ML Models"):
-    dropout_acc = train_dropout_model(df)
-    placement_acc = train_placement_model(df)
-
-    st.success(
-        f"Dropout Model Accuracy: {dropout_acc} | "
-        f"Placement Model Accuracy: {placement_acc}"
-    )
-
-    df = predict_dropout_probability(df)
-    df = predict_placement_probability(df)
-
-    st.dataframe(
-        df[
-            [
-                "STUDENT_NAME",
-                "REAL_ML_DROPOUT_PROB",
-                "REAL_ML_PLACEMENT_PROB"
-            ]
-        ],
-        use_container_width=True
-    )
+if product_mode == "Advanced Analytics":
+    st.subheader("🌲 Real ML Training Pipeline")
+    
+    if st.button("🚀 Train Real ML Models"):
+        dropout_acc = train_dropout_model(df)
+        placement_acc = train_placement_model(df)
+        
+        st.success(
+            f"Dropout Model Accuracy: {dropout_acc} | "
+            f"Placement Model Accuracy: {placement_acc}"
+        )
+        
+        df = predict_dropout_probability(df)
+        df = predict_placement_probability(df)
+        
+        st.dataframe(
+            df[
+                [
+                    "STUDENT_NAME",
+                    "REAL_ML_DROPOUT_PROB",
+                    "REAL_ML_PLACEMENT_PROB"
+                ]
+            ],
+            use_container_width=True
+        )
 
 # ---------------- REPORTING ----------------
 pdf_buffer = generate_pdf_report(
