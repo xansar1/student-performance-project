@@ -333,30 +333,89 @@ st.download_button(
     mime="text/csv"
 )
     
-# ---------------- FILE UPLOAD + LOAD DATA ----------------
-uploaded_file = st.file_uploader("📁 Upload CSV File", type=["csv"])
+# ---------------- DATA INPUT CENTER ----------------
+st.subheader("📥 Smart Data Input Center")
 
-if uploaded_file is not None:
-    try:
-        df = load_and_clean_data(
-            uploaded_file,
-            institution_type,
-            academic_level,
-            department=department
+input_mode = st.radio(
+    "Choose Data Input Method",
+    ["CSV Upload", "Quick Table Entry"]
+)
+
+df = None
+
+if input_mode == "CSV Upload":
+    uploaded_file = st.file_uploader(
+        "📁 Upload CSV File",
+        type=["csv"]
+    )
+
+    if uploaded_file is not None:
+        try:
+            df = load_and_clean_data(
+                uploaded_file,
+                institution_type,
+                academic_level,
+                department=department
+            )
+            st.session_state.main_df = df
+
+        except ValueError as e:
+            st.error(str(e))
+            st.stop()
+
+elif input_mode == "Quick Table Entry":
+    st.info("✍️ Enter marks directly like Excel")
+
+    row_count = st.number_input(
+        "Number of Students",
+        min_value=1,
+        max_value=1000,
+        value=40
+    )
+
+    # dynamic subject count
+    subject_count = st.number_input(
+        "Number of Subjects",
+        min_value=1,
+        max_value=20,
+        value=5
+    )
+
+    subject_names = []
+    for i in range(subject_count):
+        subject = st.text_input(
+            f"Subject {i+1} Name",
+            value=f"SUBJECT_{i+1}",
+            key=f"sub_{i}"
         )
+        subject_names.append(subject)
+
+    # create empty editable dataframe
+    editable_df = pd.DataFrame({
+        "ADMISSION_NO": [f"ST{i+1:03}" for i in range(row_count)],
+        "STUDENT_NAME": ["" for _ in range(row_count)],
+        **{sub: [0 for _ in range(row_count)] for sub in subject_names}
+    })
+
+    edited_df = st.data_editor(
+        editable_df,
+        use_container_width=True,
+        num_rows="fixed"
+    )
+
+    if st.button("✅ Use Entered Data"):
+        df = edited_df.copy()
         st.session_state.main_df = df
+        st.success("✅ Table data loaded successfully")
 
-    except ValueError as e:
-        st.error(str(e))
+# fallback from session
+if df is None:
+    if st.session_state.main_df is not None:
+        df = st.session_state.main_df
+    else:
+        st.info("📁 Upload CSV or use Quick Table Entry")
         st.stop()
-
-elif st.session_state.main_df is not None:
-    df = st.session_state.main_df
-
-else:
-    st.info("📁 Upload CSV file to access analytics dashboard")
-    st.stop()
-
+        
 student_users, parent_users = generate_dynamic_credentials(df)
 
 # ---------------- TENANT ISOLATION ----------------
