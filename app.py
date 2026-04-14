@@ -913,6 +913,100 @@ if phone:
 else:
     st.warning("⚠️ Parent phone number not available.")
 
+
+# ---------------- PARENT COMMUNICATION CENTER ----------------
+st.subheader("👨‍👩‍👧 Parent Communication Center")
+
+phone = str(student_row.get("PARENT_PHONE", "")).strip()
+
+# weakest subject identify
+subject_cols = [
+    col for col in df.select_dtypes(include="number").columns
+    if col not in [
+        "TOTAL_SCORE",
+        "GENERAL_SCORE",
+        "DOMAIN_SCORE",
+        "AI_DROPOUT_RISK",
+        "PLACEMENT_PROBABILITY",
+        "NEXT_SEM_PREDICTION",
+        "CLUSTER"
+    ]
+]
+
+weakest_subject = None
+lowest_mark = None
+
+if subject_cols:
+    weakest_subject = min(subject_cols, key=lambda x: student_row[x])
+    lowest_mark = student_row[weakest_subject]
+
+# message type selector
+message_type = st.selectbox(
+    "📨 Parent Communication Type",
+    [
+        "Weak Student Alert",
+        "Topper Appreciation",
+        "Exam Reminder",
+        "Homework Reminder"
+    ]
+)
+
+if message_type == "Weak Student Alert":
+    parent_msg = (
+        f"Dear Parent, {student_row['STUDENT_NAME']} needs support in "
+        f"{weakest_subject}. Current score: {lowest_mark}. "
+        f"Please provide revision support at home."
+    )
+
+elif message_type == "Topper Appreciation":
+    parent_msg = (
+        f"Congratulations! {student_row['STUDENT_NAME']} performed "
+        f"excellent in the recent assessment with "
+        f"{student_row['TOTAL_SCORE']} marks. Keep it up!"
+    )
+
+elif message_type == "Exam Reminder":
+    exam_date = st.date_input("📅 Select Exam Date")
+    parent_msg = (
+        f"Reminder: Upcoming exam for "
+        f"{student_row['STUDENT_NAME']} on {exam_date}. "
+        f"Please ensure preparation and attendance."
+    )
+
+else:
+    homework = st.text_input("📚 Homework Topic", "Revision")
+    due_date = st.date_input("📅 Homework Due Date")
+    parent_msg = (
+        f"Homework reminder for {student_row['STUDENT_NAME']}: "
+        f"{homework}. Submit before {due_date}."
+    )
+
+st.text_area(
+    "📩 Parent Message Preview",
+    value=parent_msg,
+    height=150
+)
+
+# communication report log
+report_df = pd.DataFrame({
+    "Student": [student_row["STUDENT_NAME"]],
+    "Phone": [phone],
+    "Message Type": [message_type],
+    "Preview": [parent_msg[:80] + "..."]
+})
+
+st.dataframe(report_df, use_container_width=True)
+
+# one click whatsapp
+if phone:
+    whatsapp_url = (
+        f"https://wa.me/91{phone}"
+        f"?text={parent_msg.replace(' ', '%20')}"
+    )
+    st.markdown(f"[📲 Send to Parent WhatsApp]({whatsapp_url})")
+else:
+    st.warning("⚠️ Parent phone number not found.")
+
 # ---------------- REVENUE RISK INTELLIGENCE ----------------
 st.subheader("💸 Revenue Retention Risk")
 
