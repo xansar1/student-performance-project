@@ -51,11 +51,15 @@ def generate_dynamic_credentials(df):
     for _, row in df.iterrows():
         admission_no = str(row["ADMISSION_NO"]).strip().upper()
 
+        # student login
+        student_username = admission_no
         student_password = f"{admission_no}@123"
+
+        # parent login
         parent_username = f"P_{admission_no}"
         parent_password = f"{admission_no}@parent"
 
-        student_users[admission_no] = hashlib.sha256(
+        student_users[student_username] = hashlib.sha256(
             student_password.encode()
         ).hexdigest()
 
@@ -64,6 +68,7 @@ def generate_dynamic_credentials(df):
         ).hexdigest()
 
     return student_users, parent_users
+
 
 def get_subject_mark_cols(df, exclude_cols):
     return [
@@ -74,179 +79,22 @@ def get_subject_mark_cols(df, exclude_cols):
         and "PROBABILITY" not in col
         and "PREDICTION" not in col
     ]
-    
-def generate_sample_csv(institution_type, academic_level=None):
-    if institution_type == "School":
-        if academic_level == "10":
-            sample_df = pd.DataFrame({
-                "ADMISSION_NO": ["ST101", "ST102"],
-                "STUDENT_NAME": ["Ameen", "Fathima"],
-                "CLASS": ["10", "10"],
-                "SECTION": ["A", "B"],
-                "MEDIUM": ["English", "Malayalam"],
-                "ENGLISH": [78, 88],
-                "MALAYALAM": [80, 90],
-                "HINDI": [70, 85],
-                "MATHS": [92, 95],
-                "PHYSICS": [85, 91],
-                "CHEMISTRY": [83, 89],
-                "BIOLOGY": [84, 90],
-                "SOCIAL_SCIENCE": [79, 87],
-                "COMPUTER": [90, 94]
-            })
-        else:
-            sample_df = pd.DataFrame({
-                "ADMISSION_NO": ["ST103", "ST104"],
-                "STUDENT_NAME": ["Ameen", "Fathima"],
-                "CLASS": ["8", "9"],
-                "SECTION": ["A", "B"],
-                "MEDIUM": ["English", "Malayalam"],
-                "ENGLISH": [78, 88],
-                "MALAYALAM": [80, 90],
-                "HINDI": [70, 85],
-                "MATHS": [92, 95],
-                "BASIC_SCIENCE": [85, 91],
-                "SOCIAL_SCIENCE": [79, 87],
-                "COMPUTER": [90, 94]
-            })
 
-    elif institution_type == "Higher Secondary":
-        stream = academic_level if academic_level else "Science"
 
-        if stream == "Science":
-            sample_df = pd.DataFrame({
-                "ADMISSION_NO": ["HF101", "HF102"],
-                "STUDENT_NAME": ["Ameen", "Fathima"],
-                "STREAM": ["Science", "Science"],
-                "BATCH": ["2025", "2025"],
-                "ENGLISH": [78, 88],
-                "PHYSICS": [85, 91],
-                "CHEMISTRY": [83, 89],
-                "MATHS": [92, 95],
-                "BIOLOGY": [84, 90],
-                "COMPUTER": [90, 94]
-            })
-        elif stream == "Commerce":
-            sample_df = pd.DataFrame({
-                "ADMISSION_NO": ["HF103", "HF104"],
-                "STUDENT_NAME": ["Ameen", "Fathima"],
-                "STREAM": ["Commerce", "Commerce"],
-                "BATCH": ["2025", "2025"],
-                "ENGLISH": [78, 88],
-                "ACCOUNTANCY": [85, 91],
-                "BUSINESS_STUDIES": [83, 89],
-                "ECONOMICS": [92, 95],
-                "COMPUTER_APPLICATION": [84, 90]
-            })
-        else:
-            sample_df = pd.DataFrame({
-                "ADMISSION_NO": ["HF105", "HF106"],
-                "STUDENT_NAME": ["Ameen", "Fathima"],
-                "STREAM": ["Humanities", "Humanities"],
-                "BATCH": ["2025", "2025"],
-                "ENGLISH": [78, 88],
-                "HISTORY": [85, 91],
-                "POLITICAL_SCIENCE": [83, 89],
-                "SOCIOLOGY": [92, 95],
-                "ECONOMICS": [84, 90]
-            })
+def generate_sample_csv():
+    return pd.DataFrame({
+        "ADMISSION_NO": ["NEET101", "NEET102"],
+        "STUDENT_NAME": ["Ameen", "Fathima"],
+        "COACHING_CENTRE": ["Focus Academy", "Focus Academy"],
+        "BATCH": ["NEET Morning", "JEE Evening"],
+        "PHYSICS_TEST": [78, 88],
+        "CHEMISTRY_TEST": [85, 91],
+        "BIOLOGY_TEST": [83, 89],
+        "PARENT_PHONE": ["9876543210", "9876543211"]
+    })
 
-    elif institution_type == "College":
-        sample_df = pd.DataFrame({
-            "ADMISSION_NO": ["COL101", "COL102"],
-            "STUDENT_NAME": ["Ameen", "Fathima"],
-            "INSTITUTION": ["ABC College", "ABC College"],
-            "DEPARTMENT": ["BSc Computer Science", "BSc Computer Science"],
-            "SEMESTER": ["S5", "S5"],
-            "PYTHON_PROGRAMMING": [78, 88],
-            "DBMS": [85, 91],
-            "STATISTICS": [83, 89],
-            "MACHINE_LEARNING": [92, 95]
-        })
-
-    else:
-        sample_df = pd.DataFrame({
-            "ADMISSION_NO": ["CO101", "CO102"],
-            "STUDENT_NAME": ["Ameen", "Fathima"],
-            "COACHING_CENTRE": ["Focus Academy", "Focus Academy"],
-            "BATCH": ["NEET Morning", "JEE Evening"],
-            "PHYSICS_TEST": [78, 88],
-            "CHEMISTRY_TEST": [85, 91],
-            "BIOLOGY_TEST": [83, 89]
-        })
-
-    return sample_df
-# ---------------- PAGE CONFIG ----------------
-st.set_page_config(
-    page_title="AI Academic Performance Analytics",
-    page_icon="🎓",
-    layout="wide"
-)
-if "user_info" not in st.session_state:
-    st.session_state.user_info = None
-
-if "student_user" not in st.session_state:
-    st.session_state.student_user = None
-
-if "parent_user" not in st.session_state:
-    st.session_state.parent_user = None
-
-if "main_df" not in st.session_state:
-    st.session_state.main_df = None
-    
-API_URL = "https://fantastic-space-garbanzo-97w9g7wgx77p3pvww-8000.app.github.dev"
-
-# ---------------- SIDEBAR TOGGLES ----------------
-institution_type = st.sidebar.selectbox(
-    "🏢 Institution Type",
-    ["School", "Higher Secondary", "College", "Coaching Centre"]
-)
-
-academic_level = None
-department = None
-
-if institution_type == "School":
-    academic_level = st.sidebar.selectbox(
-        "📚 Class",
-        ["1-9", "10"]
-    )
-
-elif institution_type == "Higher Secondary":
-    academic_level = st.sidebar.selectbox(
-        "🎓 Stream",
-        ["Science", "Commerce", "Humanities"]
-    )
-
-elif institution_type == "College":
-    department = st.sidebar.text_input("🏛 Department")
-
-sample_df = generate_sample_csv(
-    institution_type,
-    academic_level
-)
-
-credential_df = (
-    st.session_state.main_df
-    if st.session_state.main_df is not None
-    else sample_df
-)
-
-student_users, parent_users = generate_dynamic_credentials(
-    credential_df
-)
-
-product_mode = st.sidebar.radio(
-    "🚀 Product Mode",
-    ["School Demo", "Advanced Analytics"]
-)
-
-# ---------------- LOGIN ----------------
-if (
-    st.session_state.user_info is None
-    and st.session_state.student_user is None
-    and st.session_state.parent_user is None
-):
-    st.title("🔐 Multi College SaaS Login")
+def render_login(student_users, parent_users):
+    st.title("🔐 Coaching centre SaaS Login")
 
     login_role = st.selectbox(
         "Login As",
@@ -279,20 +127,46 @@ if (
 
         elif login_role == "Parent":
             hashed = hashlib.sha256(password.encode()).hexdigest()
-            
+
             if parent_users.get(username.upper()) == hashed:
                 st.session_state.parent_user = username.upper()
                 st.success("Parent login successful")
                 st.rerun()
             else:
                 st.error("Invalid parent credentials")
-                
-    st.stop()
 
-# ---------------- WHITE LABEL BRANDING ----------------
+
+# ---------------- PAGE CONFIG ----------------
+st.set_page_config(
+    page_title="AI Coaching Centre Analytics",
+    page_icon="🎯",
+    layout="wide"
+)
+
+if "user_info" not in st.session_state:
+    st.session_state.user_info = None
+
+if "student_user" not in st.session_state:
+    st.session_state.student_user = None
+
+if "parent_user" not in st.session_state:
+    st.session_state.parent_user = None
+
+if "main_df" not in st.session_state:
+    st.session_state.main_df = None
+    
+API_URL = "https://fantastic-space-garbanzo-97w9g7wgx77p3pvww-8000.app.github.dev"
+
+# ---------------- SIDEBAR ----------------
+institution_type = "Coaching Centre"
+academic_level = None
+department = None
+
+st.sidebar.success("🏢 Coaching Centre SaaS Mode")
+
 institution_brand = st.sidebar.text_input(
-    "🏷 Institution Brand Name",
-    "Your Institution"
+    "🏷 Coaching Centre Brand",
+    "Focus Academy"
 )
 
 logo_url = st.sidebar.text_input(
@@ -300,6 +174,34 @@ logo_url = st.sidebar.text_input(
     ""
 )
 
+product_mode = st.sidebar.radio(
+    "🚀 Analytics Mode",
+    ["Standard Dashboard", "Advanced Analytics"]
+)
+
+# sample dataset
+sample_df = generate_sample_csv()
+
+credential_df = (
+    st.session_state.main_df
+    if st.session_state.main_df is not None
+    else sample_df
+)
+
+student_users, parent_users = generate_dynamic_credentials(
+    credential_df
+)
+
+# ---------------- LOGIN ----------------
+if (
+    st.session_state.user_info is None
+    and st.session_state.student_user is None
+    and st.session_state.parent_user is None
+):
+    render_login(student_users, parent_users)
+    st.stop()
+
+# ---------------- WHITE LABEL BRANDING ----------------
 st.title(f"🎓 {institution_brand} Academic Intelligence Dashboard")
 st.caption(
     f"Premium AI-powered analytics platform for {institution_brand}"
@@ -436,12 +338,15 @@ if df.empty:
     st.stop()
 
 # ---------------- AI ENRICHMENTS ----------------
-df = enrich_student_data(df)
-df = add_student_clusters(df)
-df = add_ai_dropout_prediction(df)
-df = add_intervention_recommendations(df)
-df = add_next_semester_forecast(df)
-df = add_placement_prediction(df)
+@st.cache_data
+def run_ai_pipeline(df)
+    df = enrich_student_data(df)
+    df = add_student_clusters(df)
+    df = add_ai_dropout_prediction(df)
+    df = add_intervention_recommendations(df)
+    df = add_next_semester_forecast(df)
+    df = add_placement_prediction(df)
+    return df
 
 # ---------------- ROLE BASED DASHBOARD ROUTING ----------------
 if st.session_state.get("student_user"):
@@ -605,43 +510,20 @@ if st.session_state.get("parent_user"):
 # ---------------- FILTERS ----------------
 st.sidebar.header("🎛 Filters")
 
-if institution_type == "School":
-    primary_label = "Class"
-    secondary_label = "Section / Stream"
-elif institution_type == "Higher Secondary":
-    primary_label = "Stream"
-    secondary_label = "Subject Group"
-elif institution_type == "College":
-    primary_label = "Institution"
-    secondary_label = "Department"
-else:
-    primary_label = "Coaching Centre"
-    secondary_label = "Batch"
+primary_label = "Coaching Centre"
+secondary_label = "Batch"
 
-if institution_type == "School":
-    filter_col_1 = "CLASS"
-    filter_col_2 = "SECTION"
+filter_col_1 = "COACHING_CENTRE"
+filter_col_2 = "BATCH"
 
-elif institution_type == "Higher Secondary":
-    filter_col_1 = "STREAM"
-    filter_col_2 = "BATCH"
-
-elif institution_type == "College":
-    filter_col_1 = "INSTITUTION"
-    filter_col_2 = "DEPARTMENT"
-
-else:
-    filter_col_1 = "COACHING_CENTRE"
-    filter_col_2 = "BATCH"
-
-selected_university = st.sidebar.multiselect(
-    f"Select {primary_label}",
+selected_centres = st.sidebar.multiselect(
+    "Select Coaching Centre",
     options=df[filter_col_1].unique(),
     default=df[filter_col_1].unique()
 )
 
-selected_program = st.sidebar.multiselect(
-    f"Select {secondary_label}",
+selected_batches = st.sidebar.multiselect(
+    "Select Batch",
     options=df[filter_col_2].unique(),
     default=df[filter_col_2].unique()
 )
@@ -649,8 +531,8 @@ selected_program = st.sidebar.multiselect(
 try:
     df = apply_academic_filters(
         df,
-        selected_university,
-        selected_program
+        selected_centres,
+        selected_batches
     )
     validate_filtered_data(df)
 except ValueError as e:
@@ -675,12 +557,8 @@ at_risk = kpis["at_risk"]
 
 topper = get_topper(df)
 
-topper_org = (
-    topper["UNIVERSITY"]
-    if "UNIVERSITY" in topper.index
-    else topper[filter_col_1]
-)
-
+topper_org = topper["COACHING_CENTRE"]
+   
 c1, c2, c3, c4 = st.columns(4)
 c1.metric("👨‍🎓 Total Students", total_students)
 c2.metric("📈 Average Score", avg_score)
@@ -828,7 +706,7 @@ else:
     subject_avg = pd.DataFrame(
         columns=["Subject", "Average Score"]
     )
-
+    
 # ---------------- WEAKEST SUBJECT AI ----------------
 st.subheader("🚨 Weakest Subject Intelligence")
 
@@ -869,8 +747,23 @@ st.plotly_chart(fig_batch, use_container_width=True)
 # ---------------- STUDENT GROWTH TREND ----------------
 st.subheader("📈 Student Growth Trend")
 
-if len(subject_cols) >= 3:
-    trend_subjects = subject_cols[:3]
+mark_cols = get_subject_mark_cols(
+    df,
+    {
+        "ADMISSION_NO",
+        "STUDENT_NAME",
+        "TOTAL_SCORE",
+        "GENERAL_SCORE",
+        "DOMAIN_SCORE",
+        "CLUSTER",
+        "AI_DROPOUT_RISK",
+        "PLACEMENT_PROBABILITY",
+        "NEXT_SEM_PREDICTION"
+    }
+)
+
+if len(mark_cols) >= 3:
+    trend_subjects = mark_cols[:3]
 
     trend_df = pd.DataFrame({
         "Assessment": trend_subjects,
@@ -906,7 +799,7 @@ st.text_area(
     height=120
 )
 
-if phone:
+if phone and phone != "nan":
     whatsapp_url = (
         f"https://wa.me/91{phone}"
         f"?text={alert_message.replace(' ', '%20')}"
@@ -985,7 +878,7 @@ st.text_area(
     height=150
 )
 
-if phone:
+if phone and phone != "nan":
     whatsapp_url = (
         f"https://wa.me/91{phone}"
         f"?text={parent_msg.replace(' ', '%20')}"
@@ -1000,6 +893,7 @@ sales_df = None
 if (
     product_mode == "Advanced Analytics" 
     and institution_type in ["College", "Coaching Centre"]
+):
 
     # Revenue Risk
     st.subheader("💸 Revenue Retention Risk")
@@ -1116,7 +1010,7 @@ if (
             ])
         ]
     )
-
+    
     forecast_revenue = (
         expected_renewals * base_fee
     ) + (
@@ -1131,17 +1025,17 @@ if (
     monthly_subscription = 5000
     roi_gain = forecast_revenue - monthly_subscription
 
-        roi_text = (
-            f"Expected Revenue: ₹{forecast_revenue:,}\n",
-            f"Monthly Subscription: ₹{monthly_subscription:,}\n"
-            f"Estimated ROI Gain: ₹{roi_gain:,}\n"
-        )
+    roi_text = (
+        f"Expected Revenue: ₹{forecast_revenue:,}\n"
+        f"Monthly Subscription: ₹{monthly_subscription:,}\n"
+        f"Estimated ROI Gain: ₹{roi_gain:,}\n"
+    )
 
-        st.text_area(
-            "ROI Proposal",
-            value=roi_text,
-            height=120
-        )
+    st.text_area(
+        "ROI Proposal",
+        value=roi_text,
+        height=120
+    )
     # Cluster
     st.subheader("🧩 AI Cluster Segmentation")
     
