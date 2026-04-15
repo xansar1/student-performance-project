@@ -46,19 +46,34 @@ def enrich_student_data(df: pd.DataFrame) -> pd.DataFrame:
     return df
 
 
-def get_kpis(df: pd.DataFrame):
-    total_students = len(df)
-    avg_score = round(df["TOTAL_SCORE"].mean(), 2)
-    top_score = int(df["TOTAL_SCORE"].max())
-    at_risk = len(df[df["TOTAL_SCORE"] < 50])
+def get_kpis(df):
+    subject_cols = [
+        col for col in df.select_dtypes(include="number").columns
+        if col not in [
+            "PARENT_PHONE",
+            "AI_DROPOUT_RISK",
+            "PLACEMENT_PROBABILITY",
+            "NEXT_SEM_PREDICTION",
+            "CLUSTER"
+        ]
+    ]
+
+    if len(subject_cols) == 0:
+        return {
+            "total_students": len(df),
+            "avg_score": 0,
+            "top_score": 0,
+            "at_risk": 0
+        }
+
+    df["TOTAL_SCORE"] = df[subject_cols].sum(axis=1)
 
     return {
-        "total_students": total_students,
-        "avg_score": avg_score,
-        "top_score": top_score,
-        "at_risk": at_risk
+        "total_students": len(df),
+        "avg_score": round(df["TOTAL_SCORE"].mean(), 2),
+        "top_score": round(df["TOTAL_SCORE"].max(), 2),
+        "at_risk": len(df[df["AI_DROPOUT_RISK"] > 0.7])
     }
-
 
 def get_topper(df: pd.DataFrame):
     return df.loc[df["TOTAL_SCORE"].idxmax()]
