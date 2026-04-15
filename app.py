@@ -339,7 +339,7 @@ if df.empty:
 
 # ---------------- AI ENRICHMENTS ----------------
 @st.cache_data
-def run_ai_pipeline(df)
+def run_ai_pipeline(df):
     df = enrich_student_data(df)
     df = add_student_clusters(df)
     df = add_ai_dropout_prediction(df)
