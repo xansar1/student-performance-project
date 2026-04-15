@@ -816,25 +816,8 @@ if phone and phone != "nan":
 else:
     st.warning("⚠️ Parent phone number not available.")
 
-st.subheader("👨‍👩‍👧 Parent Communication Center")
-
-phone = str(student_row.get("PARENT_PHONE", "")).strip()
-
-subject_cols = [
-    col for col in df.select_dtypes(include="number").columns
-    if col not in [
-        "TOTAL_SCORE",
-        "GENERAL_SCORE",
-        "DOMAIN_SCORE",
-        "AI_DROPOUT_RISK",
-        "PLACEMENT_PROBABILITY",
-        "NEXT_SEM_PREDICTION",
-        "CLUSTER"
-    ]
-]
-
-weakest_subject = min(subject_cols, key=lambda x: student_row[x])
-lowest_mark = student_row[weakest_subject]
+# ---------------- BULK PARENT COMMUNICATION ----------------
+st.subheader("👨‍👩‍👧 Bulk Parent Communication")
 
 message_type = st.selectbox(
     "📨 Communication Type",
@@ -846,51 +829,71 @@ message_type = st.selectbox(
     ]
 )
 
-if message_type == "Weak Student Alert":
-    parent_msg = (
-        f"Dear Parent, {student_row['STUDENT_NAME']} needs "
-        f"additional support in {weakest_subject}. "
-        f"Current mark: {lowest_mark}. "
-        f"Please help with daily revision at home."
-    )
-
-elif message_type == "Topper Appreciation":
-    parent_msg = (
-        f"Congratulations! {student_row['STUDENT_NAME']} "
-        f"has performed excellently with "
-        f"{student_row['TOTAL_SCORE']} marks. "
-        f"Thank you for your continuous support."
-    )
-
-elif message_type == "Exam Reminder":
-    exam_date = st.date_input("📅 Exam Date")
-    parent_msg = (
-        f"Reminder: {student_row['STUDENT_NAME']}'s exam is on "
-        f"{exam_date}. Please ensure timely preparation."
-    )
-
-else:
-    homework = st.text_input("📚 Homework", "Revision")
-    due_date = st.date_input("📅 Due Date")
-    parent_msg = (
-        f"Homework reminder: {homework}. "
-        f"Please complete before {due_date}."
-    )
-
-st.text_area(
-    "📩 Message Preview",
-    value=parent_msg,
-    height=150
+selected_students = st.multiselect(
+    "Select Students",
+    df["STUDENT_NAME"].tolist(),
+    default=df["STUDENT_NAME"].tolist()[:5]
 )
 
-if phone and phone != "nan":
+bulk_df = df[df["STUDENT_NAME"].isin(selected_students)]
+
+for _, row in bulk_df.iterrows():
+    phone = str(row.get("PARENT_PHONE", "")).strip()
+
+    if not phone or phone == "nan":
+        continue
+
+    # dynamic weakest subject
+    mark_cols = get_subject_mark_cols(
+        df,
+        {
+            "ADMISSION_NO",
+            "STUDENT_NAME",
+            "TOTAL_SCORE",
+            "GENERAL_SCORE",
+            "DOMAIN_SCORE",
+            "CLUSTER",
+            "AI_DROPOUT_RISK",
+            "PLACEMENT_PROBABILITY",
+            "NEXT_SEM_PREDICTION"
+        }
+    )
+
+    weakest_subject = min(mark_cols, key=lambda x: row[x])
+    lowest_mark = row[weakest_subject]
+
+    if message_type == "Weak Student Alert":
+        msg = (
+            f"Dear Parent, {row['STUDENT_NAME']} needs support in "
+            f"{weakest_subject}. Current mark: {lowest_mark}."
+        )
+
+    elif message_type == "Topper Appreciation":
+        msg = (
+            f"Congratulations! {row['STUDENT_NAME']} scored "
+            f"{row['TOTAL_SCORE']} marks. Great performance!"
+        )
+
+    elif message_type == "Exam Reminder":
+        msg = (
+            f"Reminder: Upcoming exam for {row['STUDENT_NAME']}. "
+            f"Please ensure revision."
+        )
+
+    else:
+        msg = (
+            f"Homework reminder for {row['STUDENT_NAME']}. "
+            f"Please complete today's revision."
+        )
+
     whatsapp_url = (
         f"https://wa.me/91{phone}"
-        f"?text={parent_msg.replace(' ', '%20')}"
+        f"?text={msg.replace(' ', '%20')}"
     )
-    st.markdown(f"[📲 Send WhatsApp Message]({whatsapp_url})")
-else:
-    st.warning("⚠️ Parent phone number missing.")
+
+    st.markdown(
+        f"📲 {row['STUDENT_NAME']} → [Send Message]({whatsapp_url})"
+    )
 
 # ---------------- ADVANCED ANALYTICS ----------------
 sales_df = None
