@@ -343,6 +343,10 @@ def run_ai_pipeline(df):
     df = enrich_student_data(df)
     df = add_student_clusters(df)
     df = add_ai_dropout_prediction(df)
+
+    if "AI_DROPOUT_RISK" not in df.columns:
+        df["AI_DROPOUT_RISK"] = 0.0
+        
     df = add_intervention_recommendations(df)
     df = add_next_semester_forecast(df)
     df = add_placement_prediction(df)
