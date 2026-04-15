@@ -48,22 +48,21 @@ def train_dropout_model(df):
 
 
 def add_ai_dropout_prediction(df):
-    model = train_dropout_model(df)
+    df = df.copy()
 
-    if model is None:
-        df["AI_DROPOUT_RISK"] = 0.2
-        return df
-
-    feature_cols = [
-        col for col in [
-            "GENERAL_SCORE",
-            "DOMAIN_SCORE",
-            "TOTAL_SCORE"
-        ]
-        if col in df.columns
+    subject_cols = [
+        col for col in df.select_dtypes(include="number").columns
+        if col not in ["PARENT_PHONE"]
     ]
 
-    probs = model.predict_proba(df[feature_cols])[:, 1]
-    df["AI_DROPOUT_RISK"] = probs
+    if len(subject_cols) == 0:
+        df["AI_DROPOUT_RISK"] = 0.0
+        return df
+
+    avg_marks = df[subject_cols].mean(axis=1)
+
+    df["AI_DROPOUT_RISK"] = (
+        1 - (avg_marks / 100)
+    ).clip(0, 1)
 
     return df
