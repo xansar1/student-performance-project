@@ -670,9 +670,9 @@ metadata_cols = {
     "PLACEMENT_PROBABILITY"
 }
 
-subject_cols = [
-    col for col in df.select_dtypes(include="number").columns
-    if col not in {
+subject_cols = get_subject_mark_cols(
+    df,
+    {
         "TOTAL_SCORE",
         "GENERAL_SCORE",
         "DOMAIN_SCORE",
@@ -682,9 +682,10 @@ subject_cols = [
         "NEXT_SEM_PREDICTION",
         "CLUSTER",
         "REAL_ML_DROPOUT_PROB",
-        "REAL_ML_PLACEMENT_PROB"
+        "REAL_ML_PLACEMENT_PROB",
+        "PARENT_PHONE"
     }
-]
+)
 
 if len(subject_cols) > 0:
     subject_avg = (
@@ -837,11 +838,30 @@ selected_students = st.multiselect(
 
 bulk_df = df[df["STUDENT_NAME"].isin(selected_students)]
 
+bulk_mark_cols = get_subject_mark_cols(
+    df,
+    {
+        "ADMISSION_NO",
+        "STUDENT_NAME",
+        "TOTAL_SCORE",
+        "GENERAL_SCORE",
+        "DOMAIN_SCORE",
+        "CLUSTER",
+        "AI_DROPOUT_RISK",
+        "PLACEMENT_PROBABILITY",
+        "NEXT_SEM_PREDICTION",
+        "PARENT_PHONE"
+    }
+)
+
 for _, row in bulk_df.iterrows():
     phone = str(row.get("PARENT_PHONE", "")).strip()
 
     if not phone or phone == "nan":
         continue
+
+    weakest_subject = min(bulk_mark_cols, key=lambda x: row[x])
+    lowest_mark = row[weakest_subject]
 
     # dynamic weakest subject
     mark_cols = get_subject_mark_cols(
@@ -896,212 +916,41 @@ for _, row in bulk_df.iterrows():
     )
 
 # ---------------- ADVANCED ANALYTICS ----------------
-sales_df = None
+if product_mode == "Advanced Analytics":
+    st.subheader("🎯 Advanced Academic Intelligence")
 
-if (
-    product_mode == "Advanced Analytics" 
-    and institution_type in ["College", "Coaching Centre"]
-):
-
-    # Revenue Risk
-    st.subheader("💸 Revenue Retention Risk")
-
-    revenue_risk_students = df[
-        df["AI_DROPOUT_RISK"] > 0.6
-    ][
-        [
-            "STUDENT_NAME",
-            "TOTAL_SCORE",
-            "AI_DROPOUT_RISK"
-        ]
-    ].copy()
-
-    if not revenue_risk_students.empty:
-        revenue_risk_students["Retention Risk"] = (
-            revenue_risk_students["AI_DROPOUT_RISK"]
-            .apply(lambda x: "High" if x > 0.8 else "Medium")
-        )
-        st.dataframe(revenue_risk_students, use_container_width=True)
-    else:
-        st.success("✅ No revenue retention risk students detected.")
-
-    # Upsell
-    st.subheader("🎯 Premium Upsell Opportunities")
-
-    upsell_students = df[
-        (df["TOTAL_SCORE"] > df["TOTAL_SCORE"].mean()) &
-        (df["PLACEMENT_PROBABILITY"] > 0.7)
-    ][
-        [
-            "STUDENT_NAME",
-            "TOTAL_SCORE",
-            "PLACEMENT_PROBABILITY"
-        ]
-    ]
-
-    if not upsell_students.empty:
-        st.dataframe(upsell_students, use_container_width=True)
-    else:
-        st.info("No upsell candidates found.")
-    # Sales recommendation
-    st.subheader("🤖 AI Course Sales Recommendations")
-
-    def recommend_course(row):
-        if row["AI_DROPOUT_RISK"] > 0.7:
-            return "Remedial Support Program"
-        elif row["PLACEMENT_PROBABILITY"] > 0.8:
-            return "Placement Bootcamp"
-        elif row["TOTAL_SCORE"] > df["TOTAL_SCORE"].mean():
-            return "Advanced Excellence Batch"
-        return "Standard Progress Program"
-
-    sales_df = df[
-        [
-            "STUDENT_NAME",
-            "TOTAL_SCORE",
-            "AI_DROPOUT_RISK",
-            "PLACEMENT_PROBABILITY"
-        ]
-    ].copy()
-
-    sales_df["Recommended Program"] = sales_df.apply(
-        recommend_course,
-        axis=1
+    # AI Cluster
+    cluster_fig = px.scatter(
+        df,
+        x="TOTAL_SCORE",
+        y="NEXT_SEM_PREDICTION",
+        color="CLUSTER",
+        hover_data=["STUDENT_NAME"]
     )
+    st.plotly_chart(cluster_fig, use_container_width=True)
 
-    st.dataframe(sales_df, use_container_width=True)
-
-    # Followup
-    st.subheader("📞 Counselor Follow-up Priority")
-
-    followup_df = sales_df.copy()
-
-    def get_followup_priority(row):
-        if row["AI_DROPOUT_RISK"] > 0.8:
-            return "Urgent Parent Call"
-        elif row["Recommended Program"] in [
-            "Placement Bootcamp",
-            "Advanced Excellence Batch"
-        ]:
-            return "Upsell Counseling"
-        return "Routine Academic Follow-up"
-
-    followup_df["Counselor Action"] = followup_df.apply(
-        get_followup_priority,
-        axis=1
-    )
-
-    st.dataframe(
-        followup_df[
-            [
-                "STUDENT_NAME",
-                "Recommended Program",
-                "Counselor Action"
-            ]
-        ],
-        use_container_width=True
-    )
-
-    # Revenue Forecast
-    st.subheader("📊 Revenue Forecast Intelligence")
-
-    base_fee = 3000
-    premium_fee = 8000
-
-    expected_renewals = len(df[df["AI_DROPOUT_RISK"] <= 0.6])
-
-    expected_premium = len(
-        sales_df[
-            sales_df["Recommended Program"].isin([
-                "Placement Bootcamp",
-                "Advanced Excellence Batch"
-            ])
-        ]
-    )
-    
-    forecast_revenue = (
-        expected_renewals * base_fee
-    ) + (
-        expected_premium * premium_fee
-    )
-
-    st.metric("💰 Expected Revenue", f"₹{forecast_revenue:,}")
-
-    # ROI
-    st.subheader("🧾 ROI Proposal Summary")
-
-    monthly_subscription = 5000
-    roi_gain = forecast_revenue - monthly_subscription
-
-    roi_text = (
-        f"Expected Revenue: ₹{forecast_revenue:,}\n"
-        f"Monthly Subscription: ₹{monthly_subscription:,}\n"
-        f"Estimated ROI Gain: ₹{roi_gain:,}\n"
-    )
-
-    st.text_area(
-        "ROI Proposal",
-        value=roi_text,
-        height=120
-    )
-    # Cluster
-    st.subheader("🧩 AI Cluster Segmentation")
-    
-    numeric_cols = df.select_dtypes(include="number").columns.tolist()
-
-    if len(numeric_cols) >= 2:
-        x_col = "GENERAL_SCORE" if "GENERAL_SCORE" in df.columns else numeric_cols[0]
-        y_col = "DOMAIN_SCORE" if "DOMAIN_SCORE" in df.columns else numeric_cols[1]
-        
-        cluster_fig = px.scatter(
-            df,
-            x=x_col,
-            y=y_col,
-            color="CLUSTER",
-            hover_data=["STUDENT_NAME"]
-        )
-        st.plotly_chart(cluster_fig, use_container_width=True)
-    else:
-        st.warning("Not enough numeric columns for clustering")
     # Dropout
-    st.subheader("🤖 AI Dropout Prediction")
-
+    st.subheader("🤖 Dropout Risk Distribution")
     risk_fig = px.histogram(df, x="AI_DROPOUT_RISK")
     st.plotly_chart(risk_fig, use_container_width=True)
 
-    # Intervention
-    st.subheader("🎯 Personalized AI Intervention")
-    st.dataframe(
-        df[
-            [
-                "STUDENT_NAME",
-                "AI_INTERVENTION"
-            ]
-        ],
-        use_container_width=True
-    )
-
-    # Forecast
-    st.subheader("📈 Next Semester Forecast")
-    forecast_fig = px.scatter(
-        df,
-        x="TOTAL_SCORE",
-        y="NEXT_SEM_PREDICTION"
-    )
-    st.plotly_chart(forecast_fig, use_container_width=True)
-
     # Placement
-    st.subheader("🎓 Placement Prediction")
+    st.subheader("🎓 Placement Probability")
     placement_fig = px.histogram(
         df,
         x="PLACEMENT_PROBABILITY"
     )
     st.plotly_chart(placement_fig, use_container_width=True)
 
-    # Model Eval
-    st.subheader("📊 AI Model Evaluation")
-    eval_df = build_evaluation_dataframe(df)
-    st.dataframe(eval_df, use_container_width=True)
+    # Forecast
+    st.subheader("📈 Next Semester Forecast")
+    forecast_fig = px.scatter(
+        df,
+        x="TOTAL_SCORE",
+        y="NEXT_SEM_PREDICTION",
+        hover_data=["STUDENT_NAME"]
+    )
+    st.plotly_chart(forecast_fig, use_container_width=True)
     
 # ---------------- REPORTING ----------------
 pdf_buffer = generate_pdf_report(
