@@ -347,6 +347,7 @@ def run_ai_pipeline(df):
     df = add_next_semester_forecast(df)
     df = add_placement_prediction(df)
     return df
+df = run_ai_pipeline(df)
 
 # ---------------- ROLE BASED DASHBOARD ROUTING ----------------
 if st.session_state.get("student_user"):
