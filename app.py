@@ -863,25 +863,6 @@ for _, row in bulk_df.iterrows():
     weakest_subject = min(bulk_mark_cols, key=lambda x: row[x])
     lowest_mark = row[weakest_subject]
 
-    # dynamic weakest subject
-    mark_cols = get_subject_mark_cols(
-        df,
-        {
-            "ADMISSION_NO",
-            "STUDENT_NAME",
-            "TOTAL_SCORE",
-            "GENERAL_SCORE",
-            "DOMAIN_SCORE",
-            "CLUSTER",
-            "AI_DROPOUT_RISK",
-            "PLACEMENT_PROBABILITY",
-            "NEXT_SEM_PREDICTION"
-        }
-    )
-
-    weakest_subject = min(mark_cols, key=lambda x: row[x])
-    lowest_mark = row[weakest_subject]
-
     if message_type == "Weak Student Alert":
         msg = (
             f"Dear Parent, {row['STUDENT_NAME']} needs support in "
