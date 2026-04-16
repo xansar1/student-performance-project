@@ -47,18 +47,26 @@ def enrich_student_data(df: pd.DataFrame) -> pd.DataFrame:
 
 
 def get_kpis(df):
+    df = df.copy()
+
+    exclude_cols = {
+        "TOTAL_SCORE",
+        "PARENT_PHONE",
+        "AI_DROPOUT_RISK",
+        "DROPOUT_RISK",
+        "PLACEMENT_PROBABILITY",
+        "NEXT_SEM_PREDICTION",
+        "CLUSTER",
+        "REAL_ML_DROPOUT_PROB",
+        "REAL_ML_PLACEMENT_PROB"
+    }
+
     subject_cols = [
         col for col in df.select_dtypes(include="number").columns
-        if col not in [
-            "PARENT_PHONE",
-            "AI_DROPOUT_RISK",
-            "PLACEMENT_PROBABILITY",
-            "NEXT_SEM_PREDICTION",
-            "CLUSTER"
-        ]
+        if col not in exclude_cols
     ]
 
-    if len(subject_cols) == 0:
+    if not subject_cols:
         return {
             "total_students": len(df),
             "avg_score": 0,
@@ -66,14 +74,19 @@ def get_kpis(df):
             "at_risk": 0
         }
 
+    # recompute safely
     df["TOTAL_SCORE"] = df[subject_cols].sum(axis=1)
+
+    avg_score = round(df["TOTAL_SCORE"].mean(), 2)
+    top_score = round(df["TOTAL_SCORE"].max(), 2)
+    at_risk = len(df[df["AI_DROPOUT_RISK"] > 0.7])
 
     return {
         "total_students": len(df),
-        "avg_score": round(df["TOTAL_SCORE"].mean(), 2),
-        "top_score": round(df["TOTAL_SCORE"].max(), 2),
-        "at_risk": len(df[df["AI_DROPOUT_RISK"] > 0.7])
+        "avg_score": avg_score,
+        "top_score": top_score,
+        "at_risk": at_risk
     }
-
+    
 def get_topper(df: pd.DataFrame):
     return df.loc[df["TOTAL_SCORE"].idxmax()]
