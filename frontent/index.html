@@ -7,13 +7,31 @@
 </head>
 <body>
 
-  <h1>AI Coaching Dashboard</h1>
+  <h1>📊 AI Coaching Dashboard</h1>
 
-  <div class="login-box">
-    <input type="text" placeholder="Username" id="username">
-    <input type="password" placeholder="Password" id="password">
-    <button onclick="login()">Login</button>
+  <div class="cards">
+    <div class="card">
+      <h3>Total Students</h3>
+      <p id="students">--</p>
+    </div>
+
+    <div class="card">
+      <h3>Average Score</h3>
+      <p id="avg">--</p>
+    </div>
+
+    <div class="card">
+      <h3>Top Score</h3>
+      <p id="top">--</p>
+    </div>
+
+    <div class="card">
+      <h3>At Risk</h3>
+      <p id="risk">--</p>
+    </div>
   </div>
+
+  <button onclick="loadData()">Load Data</button>
 
   <script src="script.js"></script>
 </body>
