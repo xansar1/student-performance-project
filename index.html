@@ -31,7 +31,30 @@
     </div>
   </div>
 
-  <button onclick="loadData()">Load Data</button>
+  <div class="actions">
+    <button onclick="loadDashboard()" class="btn">🚀 Load AI Insights</button>
+  </div>
+  
+  <!-- Charts Section -->
+  <div class="charts">
+    <canvas id="barChart"></canvas>
+    <canvas id="lineChart"></canvas>
+  </div>
+  
+  <!-- Table -->
+  <div class="table-container">
+    <h3>Student Data</h3>
+    <table id="studentTable">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Score</th>
+          <th>Risk</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
 
   <script src="script.js"></script>
 </body>
