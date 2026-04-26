@@ -1,5 +1,5 @@
 async function loadData() {
-  const res = await fetch("http://localhost:8000/analytics/kpis");
+  const res = await fetch("https://ai-academic-backend.onrender.com/analytics/kpis");
   const data = await res.json();
 
   document.getElementById("students").innerText = data.total_students;
